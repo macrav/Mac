@@ -19,8 +19,23 @@ Sólo usa la librería estándar y `curl`. Una corrida completa tarda ~4 minutos
 
 | Tienda | Qué se obtiene | Cómo |
 |---|---|---|
-| **Falabella** | Ofertas + aviso de stock bajo | La colección `/collection/ofertas` viene como JSON dentro de `__NEXT_DATA__`. Se abre además la ficha de cada producto para leer el campo `fomo`. |
-| **Tai Loy** | Sólo ofertas (sin stock) | Magento 2 con grillas renderizadas en el servidor. Se recorren todas las categorías y se conserva lo que lleva precio regular tachado. |
+| **Falabella** | Ofertas, stock bajo, sexo, tallas, marca | **Next.js**: la colección `/collection/ofertas` viene como JSON dentro de `__NEXT_DATA__`. Se abre además la ficha de cada producto para leer `fomo`, la especificación *Género* y las tallas. |
+| **Tai Loy** | Sólo ofertas y marca | **Magento 2** con grillas renderizadas en el servidor. Se recorren todas las categorías y se conserva lo que lleva precio regular tachado. |
+
+La página muestra la plataforma de cada tienda en tarjetas bajo el resumen, con lo que
+aporta cada una y cuántas ofertas trajo en la corrida.
+
+### Sexo y tallas
+
+Ninguno de los dos viaja en el listado de Falabella:
+
+- **Sexo** — especificación `1349_genero_de_vestuario` (nombre `Género`) de la ficha. El
+  recolector la busca por nombre y por el fragmento `genero` en el id, porque calzado y
+  vestuario usan ids distintos. Valores típicos: Mujer, Unisex adulto, Niña, Unisex niño.
+- **Tallas** — `variants[].options[].sizes[]`, campo `value` (no `label`). Se prefieren las
+  que siguen comprables (`available: true`) y sólo se cae a todas si ninguna lo está.
+
+Tai Loy no expone ninguno de los dos: su ficha sólo tiene categoría, código y marca.
 
 ### Sobre el aviso "Pocas unidades disponibles"
 

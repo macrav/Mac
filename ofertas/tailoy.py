@@ -13,6 +13,17 @@ import re
 from common import get, fanout
 
 BASE = "https://www.tailoy.com.pe"
+
+SOURCE = {
+    "store": "Tai Loy",
+    "domain": "tailoy.com.pe",
+    "platform": "Magento 2",
+    "how": "HTML renderizado en el servidor",
+    "detail": ("Las 15 categorías del catálogo, conservando lo que lleva precio "
+               "regular tachado. No publica stock, género ni tallas: su ficha sólo "
+               "expone categoría, código y marca."),
+    "gives": ["ofertas", "marca"],
+}
 CATEGORIES = [
     "escolar", "oficina", "jugueteria", "tecnologia", "lectura",
     "arte-y-dise-o", "manualidades", "hogar-y-decoracion", "electrohogar",
@@ -61,6 +72,8 @@ def _parse(html):
             "amount": now,
             "low_stock": None,  # Tai Loy publishes no stock signal
             "units": None,
+            "gender": "",  # nor gender
+            "sizes": [],   # nor sizes
         })
     return out
 

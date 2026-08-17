@@ -27,7 +27,7 @@ def main():
     args = ap.parse_args()
 
     keys = [k.strip() for k in args.only.split(",") if k.strip()] or list(STORES)
-    items, failed = [], []
+    items, failed, sources = [], [], []
     for k in keys:
         mod = STORES.get(k)
         if not mod:
@@ -42,13 +42,15 @@ def main():
             continue
         if not got:
             failed.append(k)
+        else:
+            sources.append(mod.SOURCE)
         items += got
 
     if not items:
         print("ERROR: ninguna tienda devolvio datos", file=sys.stderr)
         return 1
 
-    info = render.build(items, args.out)
+    info = render.build(items, args.out, sources)
     data_path = os.path.join(os.path.dirname(args.out) or ".", "data.json")
     with open(data_path, "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False)

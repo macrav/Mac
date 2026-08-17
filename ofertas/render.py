@@ -79,6 +79,23 @@ input[type=search],select{font:inherit; font-size:14px; color:var(--ink);
 input[type=search]{min-width:190px}
 :focus-visible{outline:2px solid var(--focus); outline-offset:2px}
 .count{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.reset{font-size:12.5px; background:none; border:none; color:var(--accent);
+  cursor:pointer; font:inherit; font-size:12.5px; text-decoration:underline;
+  padding:0; margin-left:10px}
+
+.sources{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px}
+.src{background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:15px 17px; display:flex; flex-direction:column; gap:7px}
+.src h3{margin:0; font-size:15px; font-weight:650; display:flex; gap:8px;
+  align-items:baseline; flex-wrap:wrap}
+.src .dom{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px; color:var(--ink-3); font-weight:400}
+.src .plat{align-self:flex-start; font-size:11.5px; font-weight:650; letter-spacing:.03em;
+  padding:2.5px 9px; border-radius:5px; background:var(--accent-soft); color:var(--accent);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+.src p{margin:0; font-size:12.8px; color:var(--ink-2); line-height:1.5}
+.src .n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600}
 
 .list{display:flex; flex-direction:column; border:1px solid var(--line);
   border-radius:12px; overflow:hidden; background:var(--surface)}
@@ -98,6 +115,9 @@ input[type=search]{min-width:190px}
 .tag.low{background:var(--urgent); color:var(--on-urgent); border:1px solid var(--urgent)}
 .tag.off{background:var(--deal-soft); color:var(--deal);
   border:1px solid color-mix(in srgb, var(--deal) 30%, transparent)}
+.tag.attr{background:var(--surface); color:var(--ink-2); border:1px solid var(--line-2);
+  font-weight:550}
+.row:nth-child(even) .tag.attr{background:var(--ground)}
 
 .price{display:flex; flex-direction:column; align-items:flex-end; gap:1px;
   font-variant-numeric:tabular-nums; white-space:nowrap}
@@ -131,20 +151,33 @@ const list = document.getElementById('list');
 const count = document.getElementById('count');
 const q = document.getElementById('q');
 const sortSel = document.getElementById('sort');
+const genderSel = document.getElementById('gender');
+const brandSel = document.getElementById('brand');
+const sizeSel = document.getElementById('size');
 const more = document.getElementById('more');
+const reset = document.getElementById('reset');
 const esc = s => String(s).replace(/[&<>"]/g,
   c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-function current(){
+/* Rows kept by everything except the one facet whose options we are rebuilding,
+   so each dropdown only ever offers combinations that actually return results. */
+function base(skip){
   const term = q.value.trim().toLowerCase();
-  let r = DATA.filter(x => {
+  return DATA.filter(x => {
     if (store !== 'all' && x.t !== store) return false;
     if (kind === 'low' && !x.l) return false;
     if (kind === 'deal' && !x.d) return false;
     if (kind === 'both' && !(x.l && x.d)) return false;
     if (term && !(x.n + ' ' + x.b + ' ' + x.s).toLowerCase().includes(term)) return false;
+    if (skip !== 'g' && genderSel.value && x.g !== genderSel.value) return false;
+    if (skip !== 'b' && brandSel.value && x.b !== brandSel.value) return false;
+    if (skip !== 'z' && sizeSel.value && !(x.z || []).includes(sizeSel.value)) return false;
     return true;
   });
+}
+
+function current(){
+  const r = base(null);
   const s = sortSel.value;
   if (s === 'price-asc') r.sort((a,b) => a.v - b.v);
   else if (s === 'price-desc') r.sort((a,b) => b.v - a.v);
@@ -153,9 +186,52 @@ function current(){
   return r;
 }
 
+/* Sizes sort naturally when numeric (28, 30, 32) and alphabetically otherwise,
+   with the standard S/M/L run kept in wearing order rather than A-Z. */
+const RUN = ['XXS','XS','S','S/M','M','M/L','L','XL','XXL','XXXL','TALLA ÚNICA'];
+function sizeRank(a, b){
+  const na = parseFloat(a), nb = parseFloat(b);
+  const isNa = !isNaN(na) && /^[\d.]+$/.test(a), isNb = !isNaN(nb) && /^[\d.]+$/.test(b);
+  if (isNa && isNb) return na - nb;
+  if (isNa !== isNb) return isNa ? -1 : 1;
+  const ia = RUN.indexOf(a), ib = RUN.indexOf(b);
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1 || ib !== -1) return ia !== -1 ? -1 : 1;
+  return a.localeCompare(b, 'es');
+}
+
+function fill(sel, pairs, label){
+  const keep = sel.value;
+  sel.innerHTML = '<option value="">' + label + '</option>' + pairs.map(
+    ([v, n]) => '<option value="' + esc(v) + '">' + esc(v) + ' (' + n + ')</option>').join('');
+  if (keep && pairs.some(p => p[0] === keep)) sel.value = keep;
+  else if (keep) sel.value = '';
+}
+
+function tally(rows, pick){
+  const m = new Map();
+  rows.forEach(x => (pick(x) || []).forEach(v => {
+    if (v) m.set(v, (m.get(v) || 0) + 1);
+  }));
+  return m;
+}
+
+function facets(){
+  const g = tally(base('g'), x => x.g ? [x.g] : []);
+  fill(genderSel, [...g].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0],'es')),
+       'Sexo: todos');
+  const b = tally(base('b'), x => x.b ? [x.b] : []);
+  fill(brandSel, [...b].sort((a,b2) => a[0].localeCompare(b2[0], 'es')), 'Marca: todas');
+  const z = tally(base('z'), x => x.z || []);
+  fill(sizeSel, [...z].sort((a,b3) => sizeRank(a[0], b3[0])), 'Talla: todas');
+}
+
 function render(){
+  facets();
   const r = current();
   count.textContent = r.length + (r.length === 1 ? ' producto' : ' productos');
+  const active = genderSel.value || brandSel.value || sizeSel.value || q.value.trim();
+  reset.hidden = !active;
   if (!r.length){
     list.innerHTML = '<p class="empty">Ningún producto coincide con ese filtro o búsqueda.</p>';
     more.hidden = true;
@@ -166,6 +242,10 @@ function render(){
     if (x.l) tags.push('<span class="tag low">Pocas unidades' +
       (x.k ? ' · quedan ' + x.k : '') + '</span>');
     if (x.d) tags.push('<span class="tag off">-' + x.d + '%</span>');
+    if (x.g) tags.push('<span class="tag attr">' + esc(x.g) + '</span>');
+    if (x.z && x.z.length) tags.push('<span class="tag attr">' +
+      esc(x.z.slice(0, 6).join(' · ')) + (x.z.length > 6 ? ' +' + (x.z.length - 6) : '') +
+      '</span>');
     const meta = ['<span class="store">' + esc(x.t) + '</span>']
       .concat([x.b, x.s].filter(Boolean).map(t => '<span>' + esc(t) + '</span>')).join('');
     return '<div class="row"><div class="main">' +
@@ -189,14 +269,34 @@ function group(sel, set){
 }
 group('.chip[data-g="kind"]', v => kind = v);
 group('.chip[data-g="store"]', v => store = v);
-q.addEventListener('input', () => { shown = PAGE; render(); });
-sortSel.addEventListener('change', () => { shown = PAGE; render(); });
+[q, sortSel, genderSel, brandSel, sizeSel].forEach(el =>
+  el.addEventListener(el === q ? 'input' : 'change', () => { shown = PAGE; render(); }));
 more.addEventListener('click', () => { shown += PAGE; render(); });
+reset.addEventListener('click', () => {
+  genderSel.value = brandSel.value = sizeSel.value = ''; q.value = '';
+  shown = PAGE; render();
+});
 render();
 """
 
 
-def build(items, path="ofertas.html"):
+SIZE_RUN = ["XXS", "XS", "S", "S/M", "M", "M/L", "L", "XL", "2XL", "XXL",
+            "3XL", "XXXL", "TALLA ÚNICA"]
+
+
+def _size_key(s):
+    """Numeric sizes first in value order, then the S-M-L run in wearing order."""
+    try:
+        return (0, float(s), "")
+    except ValueError:
+        pass
+    upper = s.upper()
+    if upper in SIZE_RUN:
+        return (1, SIZE_RUN.index(upper), "")
+    return (2, 0, upper)
+
+
+def build(items, path="ofertas.html", sources=()):
     rows = []
     for x in items:
         rows.append({
@@ -205,6 +305,8 @@ def build(items, path="ofertas.html"):
             "w": x.get("before") or "", "d": int(x.get("discount") or 0),
             "l": 1 if x.get("low_stock") else 0, "k": x.get("units") or 0,
             "v": float(x.get("amount") or 0),
+            "g": x.get("gender") or "",
+            "z": sorted(x.get("sizes") or [], key=_size_key),
         })
     rows.sort(key=lambda r: (-r["l"], -r["d"], r["v"]))
 
@@ -218,6 +320,20 @@ def build(items, path="ofertas.html"):
     store_chips = "".join(
         f'<button class="chip" data-g="store" data-v="{s}" aria-pressed="false">{s}</button>'
         for s in stores)
+
+    counts = {s: sum(1 for r in rows if r["t"] == s) for s in stores}
+    cards = []
+    for src in sources:
+        n = counts.get(src["store"], 0)
+        cards.append(
+            f'<article class="src">'
+            f'<h3>{src["store"]} <span class="dom">{src["domain"]}</span></h3>'
+            f'<span class="plat">{src["platform"]}</span>'
+            f'<p>Se lee del {src["how"]}. {src["detail"]}</p>'
+            f'<p><span class="n">{n}</span> ofertas en esta corrida &middot; '
+            f'aporta {", ".join(src["gives"])}.</p>'
+            f'</article>')
+    sources_html = "".join(cards)
 
     html = f"""<title>Radar de Ofertas Perú</title>
 <style>{CSS}</style>
@@ -237,6 +353,8 @@ def build(items, path="ofertas.html"):
   <div class="stat a"><span class="k">{both}</span><span class="t">Ambos</span></div>
 </section>
 
+<section class="sources" aria-label="Plataformas de origen">{sources_html}</section>
+
 <div class="controls">
   <div class="bar">
     <span class="legend">Mostrar</span>
@@ -254,17 +372,23 @@ def build(items, path="ofertas.html"):
       {store_chips}
     </div>
     <span class="spacer"></span>
-    <input type="search" id="q" placeholder="Buscar producto o marca" aria-label="Buscar">
     <select id="sort" aria-label="Ordenar">
       <option value="rel">Más urgente primero</option>
       <option value="disc">Mayor descuento</option>
-      <option value="price-asc">Precio: menor a mayor</option>
-      <option value="price-desc">Precio: mayor a menor</option>
+      <option value="price-asc">Precio final: menor a mayor</option>
+      <option value="price-desc">Precio final: mayor a menor</option>
     </select>
+  </div>
+  <div class="bar">
+    <span class="legend">Afinar</span>
+    <select id="gender" aria-label="Filtrar por sexo"></select>
+    <select id="brand" aria-label="Filtrar por marca"></select>
+    <select id="size" aria-label="Filtrar por talla"></select>
+    <input type="search" id="q" placeholder="Buscar producto o marca" aria-label="Buscar">
   </div>
 </div>
 
-<p class="count" id="count"></p>
+<p class="count"><span id="count"></span><button class="reset" id="reset" hidden>Limpiar filtros</button></p>
 <main class="list" id="list"></main>
 <button class="chip more" id="more" hidden>Ver más</button>
 
@@ -274,12 +398,16 @@ def build(items, path="ofertas.html"):
   de stock bajo (<code>fomo</code>), el mismo que alimenta el aviso “Pocas unidades
   disponibles”. De Tai Loy se recorren todas las categorías y se conserva lo que lleva
   precio regular tachado.</p>
-  <p><strong>Límites.</strong> Falabella hoy no dibuja ese aviso en su web de escritorio
-  (trae el interruptor <code>isFomoBadgeVisible</code> apagado), así que el dato sale de la
-  ficha y no de la pantalla; su contador sólo devuelve 1 o 4, o sea marca urgencia y no
-  inventario exacto. Tai Loy no publica ninguna señal de stock, por eso sus filas nunca
-  llevan la etiqueta ámbar. Ripley y adidas.pe quedan fuera: bloquean el acceso
-  automatizado con Cloudflare y Akamai. Precios y stock cambian durante el día.</p>
+  <p><strong>Sexo y tallas.</strong> Falabella no los trae en el listado: el sexo sale de la
+  especificación <em>Género</em> de cada ficha y las tallas, de las variantes de color,
+  quedándose con las que siguen comprables. Los tres desplegables se recalculan entre sí,
+  así que sólo ofrecen combinaciones que devuelven resultados.</p>
+  <p><strong>Límites.</strong> Falabella hoy no dibuja el aviso de stock en su web de
+  escritorio (trae el interruptor <code>isFomoBadgeVisible</code> apagado), así que el dato
+  sale de la ficha y no de la pantalla; su contador sólo devuelve 1 o 4, o sea marca
+  urgencia y no inventario exacto. Tai Loy no publica stock, sexo ni tallas, por eso sus
+  filas sólo llevan marca. Ripley y adidas.pe quedan fuera: bloquean el acceso automatizado
+  con Cloudflare y Akamai. Precios y stock cambian durante el día.</p>
 </footer>
 </div>
 <script>{JS.replace('__DATA__', json.dumps(rows, ensure_ascii=False))}</script>

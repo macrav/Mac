@@ -1,0 +1,41 @@
+==============================================================================
+TICKETS PARA LA TINKA — formato 6/53 + boliyapa
+modelo ajustado hasta el sorteo 1326 (2026-08-19)
+==============================================================================
+
+Probabilidad de acertar los 6: 1 en 22,957,480. Es idéntica para
+estos tickets, para el 1-2-3-4-5-6 y para cualquier otra combinación.
+Lo único que cambia entre tickets es con cuánta gente se comparte.
+
+ #  números                       suma  en 1–31  seguidos  a repartir
+ 1  35 - 37 - 38 - 44 - 45 - 49    248        0         2       0.20x
+ 2  32 - 33 - 34 - 40 - 43 - 48    230        0         2       0.20x
+ 3  36 - 41 - 42 - 47 - 50 - 51    267        0         2       0.20x
+ 4  39 - 42 - 45 - 46 - 52 - 53    277        0         2       0.20x
+
+Índice de reparto promedio: 0.20x contra 1.00x de una jugada
+al azar. Traducido: si el pozo cae en uno de estos tickets, se espera
+repartirlo con 80% menos gente que con una jugada
+típica. No es que gane más veces: es que cobra más cuando gane.
+
+Sensibilidad: ese 0.20x sale de extrapolar el efecto hasta la
+categoría del pozo. Usando sólo lo medido directamente (5 aciertos,
+sin extrapolar) el índice sería 0.31x. La conclusión aguanta
+en todo ese rango, pero la cifra exacta no hay que tomársela al pie
+de la letra.
+
+Probabilidades por categoría (iguales para cualquier ticket):
+  6 aciertos (pozo)    1 en   22,957,480   el pozo
+  5 + boliyapa         1 en    3,826,247   S/ 100,000
+  5 aciertos           1 en       83,179   S/ 5,000
+  4 + boliyapa         1 en       33,272   S/ 500
+  4 aciertos           1 en        1,479   S/ 100
+  3 + boliyapa         1 en        1,109   S/ 50
+  3 aciertos           1 en           76   S/ 10
+  2 + boliyapa         1 en          101   S/ 5
+
+Valor esperado de cada ticket: S/ 1.46 (con el pozo en S/ 24.5 M)
+Precio: S/ 5.00. Se pierde S/ 3.54 por jugada, en promedio, y
+esto no lo arregla ningún modelo: la casa se queda con la diferencia.
+
+Semilla usada: 20260823 (reproducible con --semilla)

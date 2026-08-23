@@ -1,0 +1,176 @@
+
+==============================================================================
+BASE DE DATOS
+==============================================================================
+  sorteos almacenados: 837
+  desde: sorteo 466 (2018-01-28)
+  hasta: sorteo 1326 (2026-08-19)
+  cobertura: 837/861 (97.2%) — faltan 24 sorteos que la fuente no publica
+
+  Formatos detectados (el bombo fue creciendo):
+    1–45: sorteos 466–856 (2018-01-28 a 2022-02-16), 367 sorteos
+    1–46: sorteos 857–1002 (2022-02-20 a 2023-07-12), 146 sorteos
+    1–48: sorteos 1003–1114 (2023-07-16 a 2024-08-07), 112 sorteos
+    1–50: sorteos 1115–1279 (2024-08-11 a 2026-03-08), 165 sorteos
+    1–53: sorteos 1280–1326 (2026-03-11 a 2026-08-19), 47 sorteos
+
+==============================================================================
+1. ¿EL BOMBO ES JUSTO? (prueba chi-cuadrado de uniformidad)
+==============================================================================
+H0: todas las bolillas tienen la misma probabilidad.
+Un p-valor alto significa que los datos son compatibles con un bombo justo.
+
+  1–45 | sorteos 466–856 (367 sorteos, 2018-01-28 a 2022-02-16)
+        esperado   48.9 por bolilla | chi2=  29.69 gl=44 p=0.951  ->  sin evidencia de sesgo
+        más salidas: [(26, 64), (15, 60), (35, 57)]  menos: [(7, 37), (10, 39), (18, 39)]
+        por azar puro, el máximo esperado sería 64.0 (IC95 59–71) y el mínimo 35.0 (IC95 29–40)
+
+  1–46 | sorteos 857–1002 (146 sorteos, 2022-02-20 a 2023-07-12)
+        esperado   19.0 por bolilla | chi2=  30.66 gl=45 p=0.949  ->  sin evidencia de sesgo
+        más salidas: [(38, 27), (12, 26), (25, 26)]  menos: [(39, 11), (15, 13), (18, 13)]
+        por azar puro, el máximo esperado sería 28.7 (IC95 25–33) y el mínimo 10.6 (IC95 7–13)
+
+  1–48 | sorteos 1003–1114 (112 sorteos, 2023-07-16 a 2024-08-07)
+        esperado   14.0 por bolilla | chi2=  43.00 gl=47 p=0.639  ->  sin evidencia de sesgo
+        más salidas: [(19, 24), (27, 24), (38, 22)]  menos: [(16, 9), (40, 9), (3, 10)]
+        por azar puro, el máximo esperado sería 22.3 (IC95 20–27) y el mínimo 6.8 (IC95 4–9)
+
+  1–50 | sorteos 1115–1279 (165 sorteos, 2024-08-11 a 2026-03-08)
+        esperado   19.8 por bolilla | chi2=  56.87 gl=49 p=0.205  ->  sin evidencia de sesgo
+        más salidas: [(24, 31), (46, 30), (9, 28)]  menos: [(30, 10), (3, 13), (50, 13)]
+        por azar puro, el máximo esperado sería 29.8 (IC95 26–35) y el mínimo 11.0 (IC95 8–14)
+
+  1–53 | sorteos 1280–1326 ( 47 sorteos, 2026-03-11 a 2026-08-19)
+        esperado    5.3 por bolilla | chi2=  32.99 gl=52 p=0.982  ->  sin evidencia de sesgo
+        más salidas: [(14, 10), (12, 9), (32, 9)]  menos: [(26, 2), (30, 2), (35, 2)]
+        por azar puro, el máximo esperado sería 10.8 (IC95 9–13) y el mínimo 1.1 (IC95 0–2)
+
+
+==============================================================================
+2. ¿HAY MEMORIA ENTRE SORTEOS?
+==============================================================================
+2a. Bolillas que se repiten del sorteo anterior
+    pares de sorteos consecutivos analizados: 823
+    repetidas  observado  esperado(azar)
+       0           332         344.2
+       1           362         344.4
+       2           110         116.9
+       3            17          16.5
+       4             2           1.0
+    chi2=1.75 p=0.625 -> compatible con independencia
+
+2b. Autocorrelación de la suma de las 6 bolillas (lag 1 a 5)
+    lag 1: r=+0.0366  p=0.290
+    lag 2: r=+0.0262  p=0.449
+    lag 3: r=+0.0523  p=0.131
+    lag 4: r=+0.0610  p=0.078
+    lag 5: r=-0.0347  p=0.317
+    (con ~830 sorteos, |r| menor a 0.07 es indistinguible de cero)
+
+2c. ¿Existen bolillas 'atrasadas'?
+    época usada: 1–45, 367 sorteos (2157 intervalos)
+    esperado bajo independencia: media 7.50 sorteos, observado 7.37
+    desviación estándar esperada 6.98, observada 6.63
+    chi2=8.10 gl=9 p=0.524 -> las sequías son las del azar
+    (una bolilla 'atrasada' no tiene ninguna probabilidad extra de salir)
+
+==============================================================================
+3. BACKTEST: ¿ALGUNA ESTRATEGIA CLÁSICA GANA MÁS ACIERTOS?
+==============================================================================
+Para cada sorteo se arma un ticket con las 200 jugadas previas y se cuenta
+cuántos números acierta. Si alguna estrategia sirviera, su promedio de
+aciertos estaría por encima del azar de forma estadísticamente clara.
+
+  sorteos evaluados: 378   aciertos esperados por azar: 0.7841
+
+  estrategia      aciertos/sorteo               IC95  p vs azar
+  calientes                0.8069   0.7287–0.8851      0.569
+  fríos                    0.8545   0.7729–0.9361      0.091
+  atrasados                0.8175   0.7356–0.8993      0.425
+  azar                     0.8069   0.7266–0.8871      0.578
+  1-2-3-4-5-6              0.7249   0.6459–0.8038      0.141
+
+  Prueba de mayor potencia: regresión logística bolilla por bolilla
+    observaciones (bolilla × sorteo): 17,381
+    coeficiente de 'qué tan caliente venía': -0.00847 (ee 0.02570, z=-0.33, p=0.742)
+    intervalo 95%: [-0.0588, +0.0419] en log-odds  ->  el efecto máximo compatible con los datos cambia la probabilidad de cada bolilla entre -5.7% y +4.3%
+    no hay efecto: el pasado no informa el futuro
+
+  Conclusión operativa: ninguna estrategia se separa del azar, y el intervalo
+  de confianza es lo bastante estrecho como para descartar también efectos
+  chicos. Cada sorteo es independiente del anterior.
+
+==============================================================================
+4. ¿QUÉ NÚMEROS JUEGA LA GENTE? (aquí sí hay señal)
+==============================================================================
+No se puede predecir la bolilla, pero sí se puede medir con cuánta gente
+se comparte el premio. Si salen números que el público juega mucho, hay
+muchos más ganadores de 3, 4 y 5 aciertos. Modelo: Poisson con
+sobredispersión, variable dependiente = ganadores de 3 aciertos,
+exposición = ganadores de 2 aciertos + boliyapa (proxy del volumen vendido).
+
+  sorteos usados: 779   sobredispersión: 245.7
+
+  variable              coef       ee       z        p  efecto por unidad
+  (intercepto)        0.1603   0.0646    2.48   0.0130  
+  n_cumple            0.0410   0.0131    3.14   0.0017  +4.2% ganadores
+  n_mes              -0.0160   0.0120   -1.33   0.1830  -1.6% ganadores
+  consecutivos       -0.0495   0.0099   -5.02   0.0000  -4.8% ganadores
+  n_multiplo7         0.0091   0.0088    1.04   0.3000  +0.9% ganadores
+  suma_z             -0.0371   0.0204   -1.82   0.0692  -3.6% ganadores
+  calor_z             0.0013   0.0069    0.19   0.8476  +0.1% ganadores
+
+  Comprobación sin modelo (medianas de ganadores por unidad de volumen):
+    sorteos con 0–2 bolillas en 1–31: mediana 1.129 (n=68)
+    sorteos con 5–6 bolillas en 1–31: mediana 1.404 (n=258)
+    diferencia: +24.4% más ganadores | Mann–Whitney p=0.0000
+
+  Lectura: cada bolilla del sorteo que cae en 1–31 (rango de fechas de
+  nacimiento) multiplica la cantidad de ganadores. Eso significa que las
+  combinaciones con números bajos están mucho más jugadas, y si ganas con
+  ellas repartes el pozo entre más gente.
+
+  4b. ¿El efecto se amplifica en las categorías altas?
+     categoría       coef. bolilla en 1–31     coef. consecutivos  sorteos
+     3 aciertos           +0.0610 ± 0.0061       -0.0496 ± 0.0099      779
+     4 aciertos           +0.1278 ± 0.0078       -0.1229 ± 0.0128      779
+     5 aciertos           +0.1807 ± 0.0188       -0.2492 ± 0.0316      770
+
+     El coeficiente crece con la categoría: mientras más números de la
+     combinación hay que acertar, más pesa que sean números populares.
+     Extrapolando la recta a 6 aciertos: +0.243 por bolilla en 1–31 y -0.340 por par consecutivo.
+     OJO: eso es extrapolación. Sólo hay un puñado de aciertos de 6 en
+     todo el histórico, así que el efecto sobre el pozo no se puede medir
+     directamente; se estima con la tendencia de las categorías de abajo.
+
+==============================================================================
+5. VALOR ESPERADO REAL DE UN TICKET (formato 6/53 + boliyapa)
+==============================================================================
+  combinaciones posibles: C(53,6) = 22,957,480
+
+  categoría          probabilidad           1 en    premio S/  aporte al VE
+  6 aciertos          0.000000044     22,957,480   24,500,000        1.0672
+  5 + boliyapa        0.000000261      3,826,247      100,000        0.0261
+  5 aciertos          0.000012022         83,179        5,000        0.0601
+  4 + boliyapa        0.000030056         33,272          500        0.0150
+  4 aciertos          0.000676250          1,479          100        0.0676
+  3 + boliyapa        0.000901667          1,109           50        0.0451
+  3 aciertos          0.013224448             76           10        0.1322
+  2 + boliyapa        0.009918336            101            5        0.0496
+
+  Valor esperado por ticket: S/ 1.46   Precio: S/ 5.00
+  Retorno: 29.3%  ->  se pierde S/ 3.54 por jugada, en promedio.
+
+  Con 2 sorteos por semana y un ticket por sorteo, la probabilidad de
+  acertar 6 alguna vez en 50 años es 0.00023 (≈ 1 en 4,415).
+
+==============================================================================
+6. PERFIL DE UN SORTEO TÍPICO (para que el ticket no sea raro por gusto)
+==============================================================================
+  base: últimos 300 sorteos
+  suma de las 6 bolillas: media 151.2, rango central 50% = 126–173, 90% cae entre 96 y 207
+  números pares por sorteo: media 2.96 (3 pares/3 impares ocurre el 34% de las veces)
+  al menos un par consecutivo: 47% de los sorteos
+  bolillas en la mitad baja: media 3.18
+
+Parámetros del modelo guardados en /home/user/Mac/tinka/data/modelo.json

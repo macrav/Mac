@@ -1,0 +1,64 @@
+==============================================================================
+POPULARIDAD ESTIMADA POR NÚMERO
+(modelo sobre 829 sorteos, categoría '4 aciertos', sobredispersión 24)
+==============================================================================
+
+Índice: 1.00 = número de popularidad media. Por encima de 1, más
+jugado que el promedio; por debajo, menos jugado.
+
+  MENOS JUGADOS (los que conviene marcar)
+    53   0.707   (±0.219 en log)
+    51   0.729   (±0.209 en log)
+    52   0.762   (±0.188 en log)
+    48   0.817   (±0.144 en log)
+    46   0.859   (±0.138 en log)
+    49   0.876   (±0.148 en log)
+    47   0.901   (±0.142 en log)
+    43   0.911   (±0.136 en log)
+    36   0.921   (±0.136 en log)
+    37   0.928   (±0.136 en log)
+    38   0.929   (±0.136 en log)
+    42   0.934   (±0.136 en log)
+
+  MÁS JUGADOS (los que conviene evitar)
+     5   1.147   (±0.136 en log)
+    27   1.135   (±0.135 en log)
+     4   1.123   (±0.136 en log)
+     8   1.120   (±0.135 en log)
+    21   1.116   (±0.135 en log)
+    14   1.108   (±0.135 en log)
+    33   1.108   (±0.136 en log)
+     7   1.108   (±0.136 en log)
+    12   1.094   (±0.135 en log)
+    16   1.093   (±0.136 en log)
+    17   1.091   (±0.135 en log)
+     9   1.085   (±0.135 en log)
+
+  Promedio del 1 al 31 : 1.072
+  Promedio del 32 al 53: 0.912
+  Los números altos están un 15% menos jugados.
+
+  Prueba conjunta (¿los números difieren entre sí?): chi2=24.5, gl=53, p=0.9997
+  Validación partiendo la historia en dos mitades: correlación entre
+  las popularidades estimadas en cada mitad = +0.677 (n=46 números, p=0.000)
+  Quitando el efecto bajos/altos, la correlación baja a +0.332 (p=0.026).
+
+  Veredicto honesto:
+    - Que los números del 1 al 31 estén más jugados: sólido, se repite
+      en cualquier corte de los datos y es un efecto grande.
+    - Que un número concreto esté más jugado que otro de su misma
+      banda: evidencia débil. La prueba conjunta no lo detecta y dentro
+      del 1–31 no se replica. Se usa sólo como criterio de desempate,
+      encogido, nunca como base de la elección.
+
+  Banda 1–31: dispersión real estimada tau=0.000 contra error medio 0.136
+    peso que conserva cada estimación individual: 0.00 a 0.00
+
+  Banda 32–53: dispersión real estimada tau=0.000 contra error medio 0.149
+    peso que conserva cada estimación individual: 0.00 a 0.00
+
+  Índice tras encoger (el que usa el generador):
+    menos jugados: 32 (0.908), 47 (0.908), 46 (0.908), 45 (0.908), 44 (0.908), 43 (0.908), 42 (0.908), 41 (0.908)
+    más jugados:   12 (1.071), 13 (1.071), 14 (1.071), 15 (1.071), 8 (1.071), 16 (1.071), 17 (1.071), 19 (1.071)
+
+Guardado en /home/user/Mac/tinka/data/popularidad.json

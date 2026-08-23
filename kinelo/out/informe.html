@@ -1,0 +1,688 @@
+<title>Kinelo en frío</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+:root{
+  --ground:#EDF1F2;
+  --surface:#FBFCFC;
+  --surface-2:#E4EAEC;
+  --ink:#12171A;
+  --ink-soft:#5C6B72;
+  --rule:#CFD9DC;
+  --accent:#0E5C68;
+  --accent-soft:#D6E6E9;
+  --signal:#A6402A;
+  --signal-soft:#EFDCD6;
+  --t1:#0E5C68;
+  --t2:#A6402A;
+  --t3:#3D4E8C;
+  --t4:#71591B;
+  --on-mark:#FBFCFC;
+  --shadow:0 1px 2px rgba(18,23,26,.06), 0 8px 24px -16px rgba(18,23,26,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1214;
+    --surface:#161B1E;
+    --surface-2:#1E2529;
+    --ink:#E6ECEE;
+    --ink-soft:#93A2A8;
+    --rule:#283135;
+    --accent:#54C2D0;
+    --accent-soft:#17343A;
+    --signal:#E28464;
+    --signal-soft:#3A211A;
+    --t1:#54C2D0;
+    --t2:#E28464;
+    --t3:#8B9BE0;
+    --t4:#C6A94E;
+    --on-mark:#0E1214;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1214;
+  --surface:#161B1E;
+  --surface-2:#1E2529;
+  --ink:#E6ECEE;
+  --ink-soft:#93A2A8;
+  --rule:#283135;
+  --accent:#54C2D0;
+  --accent-soft:#17343A;
+  --signal:#E28464;
+  --signal-soft:#3A211A;
+  --t1:#54C2D0;
+  --t2:#E28464;
+  --t3:#8B9BE0;
+  --t4:#C6A94E;
+  --on-mark:#0E1214;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px;}
+.col{max-width:64ch;}
+
+h1,h2,h3,.eyebrow,.num,th,.stat-v,.chip{
+  font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+}
+h1{
+  font-size:clamp(2.4rem,6vw,3.9rem);
+  line-height:1.02;
+  font-weight:700;
+  letter-spacing:-.025em;
+  margin:0 0 .5rem;
+  text-wrap:balance;
+}
+h2{
+  font-size:clamp(1.4rem,2.6vw,1.85rem);
+  font-weight:600;
+  letter-spacing:-.015em;
+  line-height:1.15;
+  margin:0 0 .35rem;
+  text-wrap:balance;
+}
+h3{
+  font-size:1.02rem;
+  font-weight:600;
+  letter-spacing:-.005em;
+  margin:0 0 .4rem;
+}
+p{margin:0 0 1.05rem;}
+a{color:var(--accent);text-underline-offset:3px;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px;}
+
+.eyebrow{
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 .7rem;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+}
+.eyebrow::after{
+  content:"";flex:1;height:1px;background:var(--rule);
+}
+
+/* ---------- masthead ---------- */
+header.top{
+  padding:72px 0 34px;
+  border-bottom:2px solid var(--ink);
+}
+.kicker{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.73rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin:0 0 1.5rem;
+}
+.lede{
+  font-size:1.2rem;
+  color:var(--ink-soft);
+  max-width:60ch;
+  margin:1rem 0 0;
+}
+
+/* ---------- verdict ---------- */
+.verdict{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:34px;
+  align-items:start;
+  padding:38px 0 8px;
+}
+@media(max-width:760px){.verdict{grid-template-columns:1fr;gap:24px;}}
+.bignum{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-left:4px solid var(--signal);
+  border-radius:3px;
+  padding:26px 28px;
+  box-shadow:var(--shadow);
+}
+.bignum .n{
+  font-family:Archivo,sans-serif;
+  font-size:clamp(3rem,8vw,4.4rem);
+  font-weight:700;
+  line-height:.95;
+  letter-spacing:-.035em;
+  color:var(--signal);
+  font-variant-numeric:tabular-nums;
+}
+.bignum .lbl{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.76rem;
+  letter-spacing:.06em;
+  color:var(--ink-soft);
+  margin-top:.7rem;
+  line-height:1.5;
+}
+
+section{padding:52px 0 0;}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto;margin:1.4rem 0 .8rem;}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.83rem;
+  font-variant-numeric:tabular-nums;
+}
+th{
+  text-align:right;
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  padding:0 12px 9px;
+  border-bottom:1px solid var(--ink);
+  white-space:nowrap;
+}
+th:first-child,td:first-child{text-align:left;padding-left:0;}
+th:last-child,td:last-child{padding-right:0;}
+td{
+  text-align:right;
+  padding:8px 12px;
+  border-bottom:1px solid var(--rule);
+  white-space:nowrap;
+}
+tr.best td{background:var(--accent-soft);font-weight:600;}
+tr.best td:first-child::after{
+  content:"mejor";
+  font-size:.62rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-left:.7em;
+}
+.bar{
+  display:inline-block;
+  height:8px;
+  background:var(--signal);
+  opacity:.55;
+  border-radius:1px;
+  vertical-align:middle;
+}
+td.barcell{text-align:left;width:132px;}
+
+/* ---------- keno board ---------- */
+.board{
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:5px;
+  margin:1.5rem 0 1rem;
+  max-width:620px;
+}
+.cell{
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.72rem;
+  font-variant-numeric:tabular-nums;
+  border:1px solid var(--rule);
+  border-radius:2px;
+  color:var(--ink-soft);
+  background:var(--surface);
+}
+.cell.m{color:var(--on-mark);font-weight:600;border-color:transparent;}
+.cell.m1{background:var(--t1);}
+.cell.m2{background:var(--t2);}
+.cell.m3{background:var(--t3);}
+.cell.m4{background:var(--t4);}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin:.4rem 0 0;}
+.legend div{
+  display:flex;align-items:center;gap:7px;
+  font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--ink-soft);
+}
+.sw{width:11px;height:11px;border-radius:2px;}
+
+/* ---------- ticket stubs ---------- */
+.stubs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:14px;
+  margin:1.5rem 0 1rem;
+}
+.stub{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-radius:3px;
+  padding:15px 17px 17px;
+  box-shadow:var(--shadow);
+}
+.stub .hd{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-soft);
+  padding-bottom:9px;margin-bottom:11px;
+  border-bottom:1px dashed var(--rule);
+}
+.stub .nums{display:flex;gap:6px;flex-wrap:wrap;}
+.stub .nums span{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.94rem;font-weight:600;
+  font-variant-numeric:tabular-nums;
+  width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  color:var(--on-mark);
+}
+.s1 .nums span{background:var(--t1);} .s1 .hd{color:var(--t1);}
+.s2 .nums span{background:var(--t2);} .s2 .hd{color:var(--t2);}
+.s3 .nums span{background:var(--t3);} .s3 .hd{color:var(--t3);}
+.s4 .nums span{background:var(--t4);} .s4 .hd{color:var(--t4);}
+
+/* ---------- stat strip ---------- */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:1px;
+  background:var(--rule);
+  border:1px solid var(--rule);
+  border-radius:3px;
+  overflow:hidden;
+  margin:1.4rem 0;
+}
+.stat{background:var(--surface);padding:15px 17px;}
+.stat-k{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:.4rem;
+}
+.stat-v{
+  font-size:1.32rem;font-weight:700;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- callout ---------- */
+.note{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  border-radius:3px;
+  padding:18px 22px;
+  margin:1.4rem 0;
+}
+.note.warn{border-left-color:var(--signal);}
+.note p:last-child{margin-bottom:0;}
+.note h3{color:var(--accent);}
+.note.warn h3{color:var(--signal);}
+
+figure{margin:1.6rem 0 1rem;}
+figcaption{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.72rem;color:var(--ink-soft);
+  margin-top:.7rem;line-height:1.55;max-width:62ch;
+}
+.chartbox{overflow-x:auto;}
+svg{display:block;max-width:100%;height:auto;}
+
+.mono{font-family:"IBM Plex Mono",monospace;font-size:.92em;font-variant-numeric:tabular-nums;}
+strong{font-weight:600;}
+ul{padding-left:1.1rem;margin:0 0 1.05rem;}
+li{margin-bottom:.5rem;}
+li::marker{color:var(--accent);}
+
+footer{
+  margin-top:64px;padding-top:26px;
+  border-top:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.75rem;color:var(--ink-soft);line-height:1.7;
+}
+footer a{color:var(--accent);}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="kicker">Lotería electrónica Kinelo · La Tinka · análisis del 23 agosto 2026</p>
+  <h1>Kinelo en frío</h1>
+  <p class="lede">Qué dicen los números cuando se calculan exacto: la tabla de premios,
+  los tests sobre el histórico, y las dos únicas cosas que un jugador puede decidir
+  que realmente cambian algo.</p>
+</header>
+
+<div class="verdict">
+  <div>
+    <p style="margin-top:1.4rem">Kinelo no se puede predecir, y no por falta de datos.
+    El reglamento oficial dice, en su artículo 19°, que los 20 números salen de un
+    <strong>generador de números aleatorios certificado</strong>, no de una bolillera
+    física. No hay bolilla más pesada ni desgaste mecánico que descubrir, que es la
+    única fuente de ventaja que alguna vez ha existido en loterías reales.</p>
+    <p>Lo que sí se puede optimizar son dos cosas, las dos medibles y las dos con
+    efecto real. Están abajo, con el cálculo.</p>
+  </div>
+  <div class="bignum">
+    <div class="n">19,57%</div>
+    <div class="lbl">Ventaja de la casa en la mejor de las diez variantes<br>
+    del juego. Una tragamonedas regulada se queda con 4&ndash;8%;<br>
+    la ruleta europea, con 2,7%.</div>
+  </div>
+</div>
+
+<section>
+  <p class="eyebrow">Reglamento oficial</p>
+  <h2>Las reglas que fijan todo lo demás</h2>
+  <div class="col">
+    <p>Cuatro datos del reglamento determinan cada número de este informe.</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-k">Sorteo</div><div class="stat-v">20 de 80</div></div>
+    <div class="stat"><div class="stat-k">Frecuencia</div><div class="stat-v">cada 5 min</div></div>
+    <div class="stat"><div class="stat-k">Sorteos por día</div><div class="stat-v">240</div></div>
+    <div class="stat"><div class="stat-k">Jugada simple</div><div class="stat-v">S/ 1,00</div></div>
+  </div>
+  <div class="col">
+    <p>El jugador marca entre 1 y 10 números, y esa cantidad define el
+    <em>tipo de apuesta</em>: cada tipo tiene su propia tabla de premios. Ahí está
+    la primera decisión que importa.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Cálculo exacto</p>
+  <h2>Cuánto devuelve cada tipo de apuesta</h2>
+  <div class="col">
+    <p>La probabilidad de acertar <span class="mono">k</span> números marcando
+    <span class="mono">n</span> es hipergeométrica y tiene forma cerrada, así que el
+    retorno esperado de cada variante es un número exacto, no una estimación:</p>
+    <p class="mono" style="color:var(--ink-soft);font-size:.95rem">
+      P(k) = C(20,k) · C(60,n−k) / C(80,n)</p>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th><th>Retorno</th><th>Ventaja casa</th>
+          <th class="barcell" style="text-align:left"></th>
+          <th>Cobra algo</th><th>1ra categoría</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>10</td><td>79,204%</td><td>20,796%</td><td class="barcell"><i class="bar" style="width:80%"></i></td><td>25,78%</td><td>1 en 8 911 711</td></tr>
+        <tr><td>9</td><td>79,737%</td><td>20,263%</td><td class="barcell"><i class="bar" style="width:78%"></i></td><td>21,68%</td><td>1 en 1 380 688</td></tr>
+        <tr><td>8</td><td>80,000%</td><td>20,000%</td><td class="barcell"><i class="bar" style="width:77%"></i></td><td>19,06%</td><td>1 en 230 115</td></tr>
+        <tr><td>7</td><td>78,835%</td><td>21,165%</td><td class="barcell"><i class="bar" style="width:82%"></i></td><td>23,66%</td><td>1 en 40 979</td></tr>
+        <tr><td>6</td><td>78,635%</td><td>21,365%</td><td class="barcell"><i class="bar" style="width:82%"></i></td><td>16,16%</td><td>1 en 7 753</td></tr>
+        <tr class="best"><td>5</td><td>80,432%</td><td>19,568%</td><td class="barcell"><i class="bar" style="width:75%"></i></td><td>36,71%</td><td>1 en 1 551</td></tr>
+        <tr><td>4</td><td>79,648%</td><td>20,352%</td><td class="barcell"><i class="bar" style="width:78%"></i></td><td>25,89%</td><td>1 en 326</td></tr>
+        <tr><td>3</td><td>76,315%</td><td>23,685%</td><td class="barcell"><i class="bar" style="width:91%"></i></td><td>15,26%</td><td>1 en 72</td></tr>
+        <tr><td>2</td><td>74,051%</td><td>25,949%</td><td class="barcell"><i class="bar" style="width:100%"></i></td><td>43,99%</td><td>1 en 17</td></tr>
+        <tr><td>1</td><td>75,000%</td><td>25,000%</td><td class="barcell"><i class="bar" style="width:96%"></i></td><td>25,00%</td><td>1 en 4</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>El <strong>tipo 5 gana en las dos columnas que importan</strong>: mejor retorno
+    de los diez y la segunda mejor frecuencia de cobro. Entre elegirlo a él y elegir
+    el tipo 2 hay <strong>6,4 puntos porcentuales</strong> de retorno. Es la decisión
+    con más impacto que toma el jugador, y no tiene nada que ver con qué números marca.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Resultado empírico</p>
+  <h2>Se buscó señal en el histórico. No hay.</h2>
+  <div class="col">
+    <p>Seis tests estadísticos, cada uno apuntando a una creencia concreta sobre cómo
+    &laquo;leer&raquo; la lotería: números calientes, números atrasados, rachas,
+    arrastre entre sorteos consecutivos. Ninguno encuentra nada.</p>
+    <p>Eso solo vale si los tests fueran capaces de encontrar algo. Se midió:
+    inyectando un sesgo de apenas <strong>+15% en cinco números</strong>, la batería lo
+    detecta con 5000 sorteos &mdash;21 días de Kinelo&mdash; con
+    <span class="mono">p &lt; 10⁻⁶</span>, e identifica exactamente cuáles son los cinco.
+    Si hubiera un sesgo aprovechable, se vería.</p>
+    <p>Después se probaron diez estrategias de predicción, incluidas las que se venden
+    por internet, cada una viendo solo el pasado. Ninguna superó el punto de equilibrio.</p>
+  </div>
+  <div class="note warn">
+    <h3>Cómo se fabrica un sistema &laquo;ganador&raquo;</h3>
+    <p>En el backtest, la estrategia de &laquo;números fríos&raquo; terminó con
+    <strong>89,5% de retorno</strong> contra el 80,4% teórico: nueve puntos de ventaja
+    aparente, sobre 45 000 jugadas. Suena a hallazgo.</p>
+    <p>Su intervalo de confianza al 95% es <span class="mono">[79,1% &ndash; 99,9%]</span>.
+    Contiene al valor teórico y no llega a 100%. Es ruido, no habilidad. Basta con
+    probar diez variantes, quedarse con la que salió arriba y publicarla sin el
+    intervalo al lado.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Lo único optimizable</p>
+  <h2>La covarianza entre tickets</h2>
+  <div class="col">
+    <p>Al jugar varios tickets en un <em>mismo</em> sorteo, los números que comparten
+    entre sí cambian el riesgo de la cartera. Tickets con números disjuntos quedan
+    correlacionados <strong>negativamente</strong>: los 20 números del sorteo son un
+    recurso limitado, y lo que se lleva un ticket no se lo lleva el otro.</p>
+    <p>El retorno esperado no se mueve ni un decimal. El riesgo, sí.</p>
+  </div>
+
+  <figure>
+    <div class="chartbox">
+      <svg viewBox="0 0 700 300" role="img" aria-label="Cuatro tickets de tipo 5: al aumentar los números compartidos entre pares, la desviación estándar sube de 19,4 a 38,8 y la probabilidad de no cobrar nada sube de 13% a 63%, mientras el retorno esperado se mantiene constante en 3,22 soles.">
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">
+          <line x1="52" y1="245" x2="672" y2="245" stroke="currentColor" stroke-width="1" opacity=".35"/>
+
+          <!-- EV flat line -->
+          <line x1="52" y1="74" x2="672" y2="74" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="56" y="66" fill="var(--accent)" font-weight="600">Retorno esperado: S/ 3,217289 &mdash; constante en los seis diseños</text>
+
+          <!-- bars -->
+          <g>
+            <!-- overlap 0 -->
+            <rect x="66" y="182" width="26" height="63" fill="var(--signal)" opacity=".85"/>
+            <rect x="96" y="211" width="26" height="34" fill="var(--t3)" opacity=".85"/>
+            <text x="94" y="262" text-anchor="middle" opacity=".75">0</text>
+            <!-- overlap 1 -->
+            <rect x="167" y="181" width="26" height="64" fill="var(--signal)" opacity=".85"/>
+            <rect x="197" y="193" width="26" height="52" fill="var(--t3)" opacity=".85"/>
+            <text x="195" y="262" text-anchor="middle" opacity=".75">1</text>
+            <!-- overlap 2 -->
+            <rect x="268" y="180" width="26" height="65" fill="var(--signal)" opacity=".85"/>
+            <rect x="298" y="173" width="26" height="72" fill="var(--t3)" opacity=".85"/>
+            <text x="296" y="262" text-anchor="middle" opacity=".75">2</text>
+            <!-- overlap 3 -->
+            <rect x="369" y="176" width="26" height="69" fill="var(--signal)" opacity=".85"/>
+            <rect x="399" y="154" width="26" height="91" fill="var(--t3)" opacity=".85"/>
+            <text x="397" y="262" text-anchor="middle" opacity=".75">3</text>
+            <!-- overlap 4 -->
+            <rect x="470" y="162" width="26" height="83" fill="var(--signal)" opacity=".85"/>
+            <rect x="500" y="132" width="26" height="113" fill="var(--t3)" opacity=".85"/>
+            <text x="498" y="262" text-anchor="middle" opacity=".75">4</text>
+            <!-- overlap 5 -->
+            <rect x="571" y="119" width="26" height="126" fill="var(--signal)" opacity=".85"/>
+            <rect x="601" y="83" width="26" height="162" fill="var(--t3)" opacity=".85"/>
+            <text x="599" y="262" text-anchor="middle" opacity=".75">5</text>
+          </g>
+
+          <!-- value labels -->
+          <g font-size="9.5" text-anchor="middle" opacity=".9">
+            <text x="79" y="176">19,4</text><text x="109" y="205">13%</text>
+            <text x="180" y="175">19,5</text><text x="210" y="187">20%</text>
+            <text x="281" y="174">19,9</text><text x="311" y="167">28%</text>
+            <text x="382" y="170">21,2</text><text x="412" y="148">36%</text>
+            <text x="483" y="156">25,6</text><text x="513" y="126">44%</text>
+            <text x="584" y="113">38,8</text><text x="614" y="77">63%</text>
+          </g>
+
+          <text x="362" y="285" text-anchor="middle" opacity=".75">Números que cada par de tickets comparte</text>
+
+          <!-- legend -->
+          <g transform="translate(56,96)" font-size="10.5">
+            <rect x="0" y="0" width="11" height="11" fill="var(--signal)" opacity=".85"/>
+            <text x="18" y="9.5">Desviación estándar (S/)</text>
+            <rect x="176" y="0" width="11" height="11" fill="var(--t3)" opacity=".85"/>
+            <text x="194" y="9.5">Probabilidad de no cobrar nada</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <figcaption>Cuatro tickets de tipo 5, S/ 1 cada uno, en un mismo sorteo. Cálculo
+    exacto con la hipergeométrica multivariante, contrastado contra Monte Carlo de
+    400 000 sorteos. Las dos escalas están normalizadas para poder compararlas.</figcaption>
+  </figure>
+
+  <div class="col">
+    <p>Mismo gasto y mismo retorno esperado, pero la volatilidad se duplica y la
+    probabilidad de irse con las manos vacías pasa del <strong>13% al 63%</strong>.
+    Un detalle: con tickets disjuntos esa probabilidad (13,3%) queda incluso por debajo
+    del 16,0% que darían cuatro sorteos independientes. Ese es justamente el efecto de
+    la correlación negativa.</p>
+    <p>Esto es todo lo que &laquo;lo más seguro posible&raquo; puede significar en este
+    juego: mínima varianza para un retorno esperado que está fijado por la tabla de premios.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Los tickets</p>
+  <h2>Cuatro jugadas de mínima varianza</h2>
+  <div class="col">
+    <p>Tipo 5, veinte números distintos, cero solapamiento entre pares. En el tablero
+    se ve de un vistazo lo único que aquí está optimizado: ningún número se repite.</p>
+  </div>
+
+  <div class="board" role="img" aria-label="Tablero de 80 números con los 20 marcados, repartidos en cuatro tickets sin repetir ninguno.">
+    <div class="cell m m3">1</div><div class="cell">2</div><div class="cell m m3">3</div><div class="cell">4</div><div class="cell">5</div><div class="cell">6</div><div class="cell">7</div><div class="cell m m1">8</div><div class="cell m m4">9</div><div class="cell">10</div>
+    <div class="cell">11</div><div class="cell">12</div><div class="cell">13</div><div class="cell">14</div><div class="cell">15</div><div class="cell">16</div><div class="cell">17</div><div class="cell m m1">18</div><div class="cell">19</div><div class="cell m m2">20</div>
+    <div class="cell">21</div><div class="cell">22</div><div class="cell">23</div><div class="cell m m3">24</div><div class="cell">25</div><div class="cell">26</div><div class="cell">27</div><div class="cell">28</div><div class="cell">29</div><div class="cell">30</div>
+    <div class="cell m m4">31</div><div class="cell">32</div><div class="cell">33</div><div class="cell">34</div><div class="cell m m2">35</div><div class="cell">36</div><div class="cell">37</div><div class="cell m m1">38</div><div class="cell m m1">39</div><div class="cell">40</div>
+    <div class="cell m m3">41</div><div class="cell">42</div><div class="cell">43</div><div class="cell">44</div><div class="cell">45</div><div class="cell">46</div><div class="cell">47</div><div class="cell">48</div><div class="cell">49</div><div class="cell m m2">50</div>
+    <div class="cell m m4">51</div><div class="cell">52</div><div class="cell">53</div><div class="cell">54</div><div class="cell">55</div><div class="cell">56</div><div class="cell m m3">57</div><div class="cell">58</div><div class="cell">59</div><div class="cell">60</div>
+    <div class="cell">61</div><div class="cell">62</div><div class="cell">63</div><div class="cell m m1">64</div><div class="cell">65</div><div class="cell">66</div><div class="cell">67</div><div class="cell m m2">68</div><div class="cell">69</div><div class="cell">70</div>
+    <div class="cell">71</div><div class="cell">72</div><div class="cell">73</div><div class="cell m m4">74</div><div class="cell">75</div><div class="cell m m2">76</div><div class="cell">77</div><div class="cell">78</div><div class="cell">79</div><div class="cell m m4">80</div>
+  </div>
+  <div class="legend">
+    <div><i class="sw" style="background:var(--t1)"></i> Ticket 1</div>
+    <div><i class="sw" style="background:var(--t2)"></i> Ticket 2</div>
+    <div><i class="sw" style="background:var(--t3)"></i> Ticket 3</div>
+    <div><i class="sw" style="background:var(--t4)"></i> Ticket 4</div>
+  </div>
+
+  <div class="stubs">
+    <div class="stub s1"><div class="hd"><span>Ticket 1</span><span>tipo 5</span></div>
+      <div class="nums"><span>8</span><span>18</span><span>38</span><span>39</span><span>64</span></div></div>
+    <div class="stub s2"><div class="hd"><span>Ticket 2</span><span>tipo 5</span></div>
+      <div class="nums"><span>20</span><span>35</span><span>50</span><span>68</span><span>76</span></div></div>
+    <div class="stub s3"><div class="hd"><span>Ticket 3</span><span>tipo 5</span></div>
+      <div class="nums"><span>1</span><span>3</span><span>24</span><span>41</span><span>57</span></div></div>
+    <div class="stub s4"><div class="hd"><span>Ticket 4</span><span>tipo 5</span></div>
+      <div class="nums"><span>9</span><span>31</span><span>51</span><span>74</span><span>80</span></div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-k">Costo</div><div class="stat-v">S/ 4,00</div></div>
+    <div class="stat"><div class="stat-k">Retorno esperado</div><div class="stat-v">S/ 3,22</div></div>
+    <div class="stat"><div class="stat-k">Pérdida esperada</div><div class="stat-v" style="color:var(--signal)">S/ 0,78</div></div>
+    <div class="stat"><div class="stat-k">Desv. estándar</div><div class="stat-v">S/ 19,36</div></div>
+    <div class="stat"><div class="stat-k">No cobrar nada</div><div class="stat-v">13,3%</div></div>
+  </div>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Resultado</th><th>Paga</th><th>Probabilidad</th><th>Frecuencia</th></tr></thead>
+      <tbody>
+        <tr><td>5 aciertos</td><td>380&times;</td><td>0,0645%</td><td>1 en 1 551</td></tr>
+        <tr><td>4 aciertos</td><td>10&times;</td><td>1,2092%</td><td>1 en 83</td></tr>
+        <tr><td>3 aciertos</td><td>2&times;</td><td>8,3935%</td><td>1 en 12</td></tr>
+        <tr><td>2 aciertos</td><td>1&times;</td><td>27,0457%</td><td>1 en 4</td></tr>
+        <tr><td>1 o 0 aciertos</td><td>&mdash;</td><td>63,2870%</td><td>1 en 1,6</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <h3>Qué son y qué no son estos tickets</h3>
+    <p><strong>Son</strong> la configuración de mínima varianza para cuatro jugadas de
+    S/ 1 en un mismo sorteo, con el tipo de apuesta de mayor retorno de los diez.</p>
+    <p><strong>No son</strong> tickets ganadores: esa categoría no existe. Los veinte
+    números salieron de un sorteo reproducible con semilla
+    <span class="mono">20260823</span>, y las 24 040 016 combinaciones posibles de un
+    ticket de tipo 5 son exactamente equiprobables. Cambiarlos por fechas de cumpleaños
+    no empeora nada, siempre que sigan siendo veinte números distintos entre sí.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">La cuenta</p>
+  <h2>Qué cuesta jugar esto</h2>
+  <div class="col">
+    <p>Con el tipo 5, el mejor de los diez, a S/ 1 la jugada:</p>
+    <ul>
+      <li>Pérdida esperada por sorteo de cuatro tickets: <strong class="mono">S/ 0,78</strong></li>
+      <li>Veinte sorteos al día durante un mes: <strong class="mono">S/ 470</strong></li>
+      <li>Ese mismo ritmo durante un año: <strong class="mono">S/ 5714</strong></li>
+    </ul>
+    <p>Acertar los cinco es 1 en 1551. Jugando sin parar las veinte horas que el juego
+    está abierto, son unos <strong>6,5 días de juego continuo</strong> por cada acierto
+    de primera categoría, que paga 380 veces la apuesta.</p>
+    <p>La ventaja de la casa del 19,57% es estructural: está escrita en la tabla de
+    premios del reglamento. No baja eligiendo números, ni con ventanas de análisis, ni
+    con modelos de Markov, ni jugando más seguido.</p>
+    <p>Con esos números, la jugada de mayor valor esperado es <strong>no jugar</strong>:
+    S/ 0. Cualquier otra tiene valor esperado negativo. Si igual se juega, que sea con
+    plata que se pueda perder entera, porque en promedio se pierde.</p>
+  </div>
+  <div class="note warn">
+    <p>Si jugar deja de ser entretenimiento: <strong>Línea 113</strong> (Minsa),
+    opción 5, salud mental. Gratuita, todos los días.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Nota sobre los datos</p>
+  <h2>El histórico de Kinelo no es público</h2>
+  <div class="col">
+    <p>Se intentó armar la base con sorteos reales. Esto es lo que se verificó:</p>
+    <ul>
+      <li><span class="mono">m.latinka.com.pe</span> devuelve el mismo HTML para
+      cualquier ruta, incluidas rutas inventadas. Es una shell que se arma en el cliente.</li>
+      <li>El backend de resultados es <span class="mono">i.do?m=resultados&amp;t=1&amp;s=1121</span>
+      &mdash;Kinelo es el juego 1121&mdash;, y sin sesión iniciada responde 404.</li>
+      <li>El feed <span class="mono">games.xml</span> publica Tinka, Kábala, Ganagol y
+      Gana Diario. Kinelo no entra: son 240 sorteos diarios.</li>
+      <li><span class="mono">kinelo.com.pe</span>, que el artículo 21° señala como lugar
+      de publicación, no resuelve desde fuera del Perú.</li>
+    </ul>
+    <p>Los resultados viven dentro del cliente de juego autenticado. El sistema quedó
+    listo para cargarlos en cuanto se capturen desde una sesión propia; mientras tanto
+    los tests corren sobre un corpus simulado, marcado como tal en la base de datos.</p>
+    <p>Conviene ser claro sobre qué cambiaría eso: <strong>nada de la tabla de premios
+    ni de los tickets</strong>. Ese cálculo es exacto y sale del reglamento, no del
+    histórico. Los datos reales solo servirían para auditar si el RNG se comporta como
+    debe &mdash;y si no lo hiciera, el problema sería mucho más grande que ganar una jugada.</p>
+  </div>
+</section>
+
+<footer>
+  Cálculos exactos con distribución hipergeométrica, verificados contra Monte Carlo.
+  Tabla de premios transcrita del reglamento oficial, artículo 26°.<br>
+  Fuentes:
+  <a href="https://www.latinka.com.pe/latinka/docs/reglamento/reglamento-kinelo.pdf">reglamento de Kinelo (PDF)</a> ·
+  <a href="https://m.latinka.com.pe/game_kinelo_show_home.html">página del juego</a> ·
+  <a href="https://blog.latinka.com.pe/tutorial/como-jugar-kinelo/">tutorial oficial</a><br>
+  Código, base de datos y pruebas: <span class="mono">kinelo/</span> en el repositorio.
+</footer>
+
+</div>

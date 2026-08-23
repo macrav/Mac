@@ -1,0 +1,17 @@
+# Formato de carga manual de sorteos de KINELO
+#
+#   python3 -c "import collector; print(collector.ingest_manual('data/ejemplo_sorteos.txt'))"
+#
+# Las líneas que empiezan con # se ignoran.
+# Cada sorteo son 20 números distintos del 1 al 80.
+#
+# Formato A — id | fecha ISO | números
+1001 | 2026-08-23T06:00:00 | 3,7,11,14,19,22,25,28,33,37,41,44,49,52,55,60,63,68,72,77
+1002 | 2026-08-23T06:05:00 | 1,5,9,12,17,20,24,29,31,36,40,45,48,53,58,61,66,70,75,79
+1003 | 2026-08-23T06:10:00 | 2,6,10,15,18,23,26,30,34,38,42,46,50,54,59,62,67,71,76,80
+#
+# Formato B — id, fecha, números separados por espacios
+1004 | 2026-08-23T06:15:00 | 4 8 13 16 21 27 32 35 39 43 47 51 56 57 64 65 69 73 74 78
+#
+# Los ids que ya existan en la base se ignoran, así que se puede volver a
+# cargar el mismo archivo sin duplicar nada.

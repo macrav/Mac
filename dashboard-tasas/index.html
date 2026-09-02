@@ -1,0 +1,900 @@
+<title>Dónde Rinde Tu Plata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F4F6F2; --surface:#FFFFFF; --surface-2:#EDF0EA; --surface-3:#E4E8DF;
+  --ink:#121815; --ink-2:#4B5651; --ink-3:#78837D;
+  --line:#DDE2D8; --line-strong:#C3CBBD;
+  --accent:#00926F; --accent-ink:#00654D; --accent-wash:#E3F2EC;
+  --pen:#00926F; --usd:#3159CE; --alt:#B06400; --plum:#8A3B94;
+  --pen-wash:#E0F1EA; --usd-wash:#E4EAFA; --alt-wash:#F6EBDC;
+  --good:#1F7A4D; --warn:#96650A; --crit:#A33323;
+  --shadow:0 1px 2px rgba(18,24,21,.06), 0 8px 24px -14px rgba(18,24,21,.28);
+  --grid:#E7EBE2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101312; --surface:#181C1A; --surface-2:#1F2422; --surface-3:#272D2A;
+    --ink:#E9EEE9; --ink-2:#A3ADA7; --ink-3:#7C8781;
+    --line:#2A312D; --line-strong:#3A423D;
+    --accent:#17A47E; --accent-ink:#37C097; --accent-wash:#122C24;
+    --pen:#17A47E; --usd:#6D8FF0; --alt:#C28024; --plum:#AF6BBD;
+    --pen-wash:#122C24; --usd-wash:#182342; --alt-wash:#2E2314;
+    --good:#3FB57C; --warn:#D2A03F; --crit:#E0705C;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.8);
+    --grid:#242A27;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101312; --surface:#181C1A; --surface-2:#1F2422; --surface-3:#272D2A;
+  --ink:#E9EEE9; --ink-2:#A3ADA7; --ink-3:#7C8781;
+  --line:#2A312D; --line-strong:#3A423D;
+  --accent:#17A47E; --accent-ink:#37C097; --accent-wash:#122C24;
+  --pen:#17A47E; --usd:#6D8FF0; --alt:#C28024; --plum:#AF6BBD;
+  --pen-wash:#122C24; --usd-wash:#182342; --alt-wash:#2E2314;
+  --good:#3FB57C; --warn:#D2A03F; --crit:#E0705C;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.8);
+  --grid:#242A27;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px 72px}
+h1,h2,h3{font-family:Fraunces,Georgia,"Times New Roman",serif; font-weight:700; text-wrap:balance; margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+.num{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; font-weight:500}
+.eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:1px solid var(--line); background:var(--surface); margin-bottom:0}
+.masthead-in{max-width:1180px; margin:0 auto; padding:26px 20px 20px; display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; justify-content:space-between}
+.masthead h1{font-size:clamp(29px,4.4vw,42px); line-height:1.04; letter-spacing:-.015em}
+.masthead p{margin:8px 0 0; color:var(--ink-2); max-width:56ch; font-size:14.5px}
+.stamp{text-align:right; font-size:12px; color:var(--ink-3); line-height:1.5}
+.stamp b{display:block; color:var(--ink); font-size:13px; font-weight:600}
+
+.macro{display:flex; flex-wrap:wrap; gap:0; border-bottom:1px solid var(--line); background:var(--surface-2)}
+.macro-in{max-width:1180px; margin:0 auto; padding:0 20px; display:flex; flex-wrap:wrap; width:100%}
+.macro-item{padding:10px 22px 10px 0; margin-right:22px; border-right:1px solid var(--line); display:flex; align-items:baseline; gap:8px; flex:0 0 auto}
+.macro-item:last-child{border-right:0}
+.macro-item span{font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.macro-item strong{font-family:"IBM Plex Mono",monospace; font-size:14px; font-variant-numeric:tabular-nums}
+
+/* ---------- controls ---------- */
+.panel{position:sticky; top:0; z-index:30; background:var(--surface); border-bottom:1px solid var(--line-strong); box-shadow:0 6px 18px -18px rgba(0,0,0,.6)}
+.panel-in{max-width:1180px; margin:0 auto; padding:14px 20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:12px 16px; align-items:end}
+.field.wide{grid-column:span 2}
+@media(max-width:620px){.field.wide{grid-column:span 1}}
+.field{display:flex; flex-direction:column; gap:5px; min-width:0}
+.field label{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.field input,.field select{
+  font:inherit; font-size:14px; color:var(--ink); background:var(--surface-2);
+  border:1px solid var(--line-strong); border-radius:7px; padding:8px 10px; width:100%;
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+}
+.field select{font-family:"Public Sans",sans-serif; cursor:pointer}
+.field input:focus-visible,.field select:focus-visible,button:focus-visible,th[role=button]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.seg{display:flex; border:1px solid var(--line-strong); border-radius:7px; overflow:hidden; background:var(--surface-2)}
+.seg button{flex:1; font:inherit; font-size:13px; font-weight:600; padding:8px 4px; background:transparent; color:var(--ink-2); border:0; cursor:pointer; border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--accent); color:#fff}
+.checkline{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-2); padding-bottom:9px}
+.checkline input{width:16px; height:16px; accent-color:var(--accent)}
+
+/* ---------- layout ---------- */
+section{margin-top:40px}
+.sec-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:14px; padding-bottom:9px; border-bottom:2px solid var(--ink)}
+.sec-head h2{font-size:22px; letter-spacing:-.01em}
+.sec-head .note{font-size:13px; color:var(--ink-2); margin-left:auto}
+
+/* podium */
+.podium{display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:14px}
+.win{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px; position:relative; display:flex; flex-direction:column; gap:2px; box-shadow:var(--shadow)}
+.win.top{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent), var(--shadow)}
+.win .rank{position:absolute; top:14px; right:16px; font-family:Fraunces,serif; font-size:30px; line-height:1; color:var(--line-strong); font-weight:700}
+.win.top .rank{color:var(--accent)}
+.win .who{font-family:Fraunces,serif; font-size:19px; font-weight:700; line-height:1.2; padding-right:34px}
+.win .where{font-size:12.5px; color:var(--ink-3); margin-bottom:12px}
+.win .amt{font-family:"IBM Plex Mono",monospace; font-size:29px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.1}
+.win .amt-l{font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600; margin-top:6px}
+.win .foot{margin-top:13px; padding-top:11px; border-top:1px solid var(--line); display:flex; gap:16px; font-size:12.5px; color:var(--ink-2); flex-wrap:wrap}
+.win .foot b{font-family:"IBM Plex Mono",monospace; color:var(--ink); font-variant-numeric:tabular-nums}
+
+/* charts */
+.charts{display:grid; grid-template-columns:1.35fr 1fr; gap:18px; align-items:start}
+@media(max-width:900px){.charts{grid-template-columns:1fr}}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px 14px}
+.card h3{font-size:15.5px; margin-bottom:2px}
+.card .sub{font-size:12.5px; color:var(--ink-3); margin:0 0 12px}
+.chart-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap}
+.mini-seg{display:flex; border:1px solid var(--line-strong); border-radius:6px; overflow:hidden; flex:0 0 auto}
+.mini-seg button{font:inherit; font-size:11.5px; font-weight:600; padding:5px 9px; background:var(--surface-2); color:var(--ink-2); border:0; border-right:1px solid var(--line); cursor:pointer}
+.mini-seg button:last-child{border-right:0}
+.mini-seg button[aria-pressed=true]{background:var(--ink); color:var(--surface)}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--ink-2); margin-top:10px}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:-1px}
+.chart-scroll{overflow-x:auto}
+svg{display:block; max-width:100%}
+svg text{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+svg .lbl{font-family:"Public Sans",sans-serif; font-variant-numeric:normal}
+
+/* tooltip */
+.tip{position:fixed; z-index:80; pointer-events:none; background:var(--ink); color:var(--bg); border-radius:7px; padding:8px 11px; font-size:12.5px; line-height:1.45; box-shadow:0 10px 28px -10px rgba(0,0,0,.6); opacity:0; transition:opacity .1s; max-width:250px}
+.tip.on{opacity:1}
+.tip b{font-family:"Public Sans",sans-serif; display:block; margin-bottom:3px; font-size:13px}
+.tip span{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+
+/* table */
+.tbl-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:940px; font-size:13.5px}
+thead th{
+  text-align:left; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3);
+  font-weight:700; padding:11px 12px; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+  background:var(--surface-2); position:sticky; top:0; cursor:pointer; user-select:none;
+}
+thead th.r{text-align:right}
+thead th[aria-sort]:not([aria-sort=none]){color:var(--ink)}
+thead th .car{opacity:.4; font-size:9px}
+thead th[aria-sort]:not([aria-sort=none]) .car{opacity:1}
+tbody td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+td.r{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+td.name{min-width:210px}
+td.name b{font-weight:600; display:block}
+td.name small{color:var(--ink-3); font-size:12px}
+.cur{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; white-space:nowrap}
+.cur i{width:9px; height:9px; border-radius:50%; display:inline-block}
+.chip{display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; border:1px solid; white-space:nowrap}
+.chip.pen{color:var(--pen); border-color:var(--pen); background:var(--pen-wash)}
+.chip.usd{color:var(--usd); border-color:var(--usd); background:var(--usd-wash)}
+.chip.alt{color:var(--alt); border-color:var(--alt); background:var(--alt-wash)}
+.risk{display:inline-flex; gap:2px; align-items:center}
+.risk i{width:6px; height:12px; border-radius:1.5px; background:var(--line-strong); display:block}
+.risk.r1 i:nth-child(-n+1),.risk.r2 i:nth-child(-n+2){background:var(--good)}
+.risk.r3 i:nth-child(-n+3){background:var(--warn)}
+.risk.r4 i:nth-child(-n+4),.risk.r5 i:nth-child(-n+5){background:var(--crit)}
+.risk span{font-size:11px; color:var(--ink-3); margin-left:4px}
+.flag{font-size:11px; color:var(--warn); font-weight:600}
+.dot-esc{color:var(--ink-3); font-size:11.5px}
+.empty{padding:34px 18px; text-align:center; color:var(--ink-2); font-size:14px}
+
+/* prose blocks */
+.grid3{display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:14px}
+.route{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px}
+.route h3{font-size:16px; margin-bottom:3px}
+.route .cost{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--accent-ink); font-weight:600; margin-bottom:9px}
+.route p{margin:0 0 9px; font-size:13.5px; color:var(--ink-2); line-height:1.55}
+.route ul{margin:0; padding-left:17px; font-size:13px; color:var(--ink-2)}
+.route li{margin-bottom:4px}
+.route li b{color:var(--ink); font-weight:600}
+
+.freq-tbl{width:100%; min-width:640px; border-collapse:collapse; font-size:13.5px}
+.freq-tbl th{text-align:left; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:700; padding:9px 12px; border-bottom:1px solid var(--line-strong)}
+.freq-tbl td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+.freq-tbl td:first-child{color:var(--ink); font-weight:600; white-space:nowrap}
+.freq-tbl tr:last-child td{border-bottom:0}
+
+.ladder{background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.ladder-row{display:grid; grid-template-columns:64px 1fr auto; gap:14px; padding:14px 18px; border-bottom:1px solid var(--line); align-items:center}
+.ladder-row:last-child{border-bottom:0}
+.ladder-row .pct{font-family:Fraunces,serif; font-size:26px; font-weight:700; color:var(--accent); line-height:1}
+.ladder-row .what b{display:block; font-size:14.5px; font-weight:600}
+.ladder-row .what span{font-size:13px; color:var(--ink-2)}
+.ladder-row .money{font-family:"IBM Plex Mono",monospace; font-size:15px; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+.ladder-row .money small{display:block; font-size:11px; color:var(--ink-3); font-family:"Public Sans",sans-serif}
+.ladder-sum{display:flex; justify-content:space-between; gap:16px; padding:14px 18px; background:var(--surface-2); font-size:14px; flex-wrap:wrap}
+.ladder-sum b{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+
+.callout{border-left:3px solid var(--accent); background:var(--accent-wash); padding:14px 18px; border-radius:0 10px 10px 0; font-size:13.5px; color:var(--ink-2); margin-top:16px}
+.callout b{color:var(--ink)}
+.callout.warn{border-left-color:var(--warn); background:var(--alt-wash)}
+
+.notes{font-size:12.5px; color:var(--ink-3); line-height:1.65}
+.notes h3{font-size:14px; color:var(--ink); margin-bottom:6px}
+.notes ol{padding-left:18px; margin:0}
+.notes li{margin-bottom:6px}
+.notes a{color:var(--accent-ink)}
+.foot-rule{border:0; border-top:1px solid var(--line); margin:34px 0 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div>
+      <div class="eyebrow">Panel de renta fija &middot; 2 de septiembre de 2026</div>
+      <h1>Dónde Rinde Tu Plata</h1>
+      <p>Compara depósitos, bonos y fondos que pagan intereses de forma periódica &mdash; en Perú y en el exterior, todos abiertos desde Perú y con costos bajos. Ajusta los controles y el panel recalcula tu pago por periodo, ya neto de comisiones e impuestos.</p>
+    </div>
+    <div class="stamp">
+      <b>Tasas recogidas al 2 sep 2026</b>
+      Fuentes: SBS, BCRP, US Treasury,<br>emisores de los fondos. Verifica<br>la tasa vigente antes de firmar.
+    </div>
+  </div>
+</header>
+
+<div class="macro"><div class="macro-in">
+  <div class="macro-item"><span>Tasa BCRP</span><strong>4,25 %</strong></div>
+  <div class="macro-item"><span>Fed funds</span><strong>3,50–3,75 %</strong></div>
+  <div class="macro-item"><span>Inflación Perú (proy.)</span><strong>3,2 %</strong></div>
+  <div class="macro-item"><span>Letra EE.UU. 1 año</span><strong>4,18 %</strong></div>
+  <div class="macro-item"><span>Cobertura FSD</span><strong>S/ 122 000</strong></div>
+</div></div>
+
+<div class="panel"><div class="panel-in">
+  <div class="field">
+    <label for="capital">Capital a colocar</label>
+    <input id="capital" type="number" min="100" step="1000" value="50000" inputmode="numeric">
+  </div>
+  <div class="field">
+    <label for="moneda">Moneda de tu capital</label>
+    <select id="moneda">
+      <option value="PEN" selected>Soles (S/)</option>
+      <option value="USD">Dólares (US$)</option>
+    </select>
+  </div>
+  <div class="field wide">
+    <label>Quiero cobrar</label>
+    <div class="seg" id="frecSeg" role="group" aria-label="Frecuencia de pago">
+      <button type="button" data-f="12" aria-pressed="true">Mensual</button>
+      <button type="button" data-f="4" aria-pressed="false">Trimestral</button>
+      <button type="button" data-f="2" aria-pressed="false">Semestral</button>
+      <button type="button" data-f="1" aria-pressed="false">Anual</button>
+    </div>
+  </div>
+  <div class="field">
+    <label for="horizonte">Plazo inmovilizable</label>
+    <select id="horizonte">
+      <option value="3">3 meses</option>
+      <option value="6">6 meses</option>
+      <option value="12" selected>12 meses</option>
+      <option value="24">24 meses</option>
+      <option value="60">5 años o más</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="perfil">Riesgo que acepto</label>
+    <select id="perfil">
+      <option value="2">Conservador</option>
+      <option value="3" selected>Moderado</option>
+      <option value="5">Agresivo</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="tramo">Mi tramo de IR</label>
+    <select id="tramo">
+      <option value="8">8 % · hasta 5 UIT</option>
+      <option value="14" selected>14 % · 5–20 UIT</option>
+      <option value="17">17 % · 20–35 UIT</option>
+      <option value="20">20 % · 35–45 UIT</option>
+      <option value="30">30 % · +45 UIT</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="tc">T. de cambio S//US$</label>
+    <input id="tc" type="number" min="2" max="6" step="0.01" value="3.45">
+  </div>
+  <div class="field">
+    <label for="drift">Sol vs dólar, a un año</label>
+    <select id="drift">
+      <option value="-2">Sol +2 % (se aprecia)</option>
+      <option value="-1">Sol +1 % (se aprecia)</option>
+      <option value="0" selected>Estable</option>
+      <option value="1">Sol −1 % (se deprecia)</option>
+      <option value="3">Sol −3 % (se deprecia)</option>
+    </select>
+  </div>
+  <div class="checkline">
+    <input type="checkbox" id="soloFrec" checked>
+    <label for="soloFrec" style="text-transform:none; letter-spacing:0; font-size:13px; color:var(--ink-2); font-weight:400">Solo lo que paga en esa frecuencia</label>
+  </div>
+</div></div>
+
+<div class="wrap">
+
+  <section id="podio">
+    <div class="sec-head">
+      <h2>Tu podio</h2>
+      <div class="note" id="podioNote"></div>
+    </div>
+    <div class="podium" id="podium"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>El tablero completo</h2>
+      <div class="note" id="chartNote"></div>
+    </div>
+    <div class="charts">
+      <div class="card">
+        <div class="chart-head">
+          <div>
+            <h3>Rendimiento neto anual</h3>
+            <p class="sub" id="barSub">Después de comisiones e impuestos, expresado en tu moneda.</p>
+          </div>
+          <div class="mini-seg" id="barSeg" role="group" aria-label="Escala del gráfico">
+            <button type="button" data-m="neta" aria-pressed="true">Neto</button>
+            <button type="button" data-m="real" aria-pressed="false">Real</button>
+          </div>
+        </div>
+        <div class="chart-scroll"><svg id="barChart" role="img" aria-label="Rendimiento neto anual por instrumento"></svg></div>
+        <div class="legend">
+          <span><i style="background:var(--pen)"></i>Instrumento en soles</span>
+          <span><i style="background:var(--usd)"></i>Instrumento en dólares</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-head">
+          <div>
+            <h3>Riesgo contra retorno</h3>
+            <p class="sub">Cada punto es una opción. Arriba a la izquierda es lo que buscas.</p>
+          </div>
+        </div>
+        <div class="chart-scroll"><svg id="scatter" role="img" aria-label="Riesgo frente a rendimiento neto"></svg></div>
+        <div class="legend">
+          <span><i style="background:var(--pen)"></i>Soles</span>
+          <span><i style="background:var(--usd)"></i>Dólares</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Comparador</h2>
+      <div class="note" id="tblNote"></div>
+    </div>
+    <div class="tbl-wrap">
+      <table id="tabla">
+        <thead><tr>
+          <th data-k="nombre" role="button" tabindex="0" aria-sort="none">Instrumento <span class="car">▼</span></th>
+          <th data-k="moneda" role="button" tabindex="0" aria-sort="none">Moneda <span class="car">▼</span></th>
+          <th class="r" data-k="tea" role="button" tabindex="0" aria-sort="none">TEA bruta <span class="car">▼</span></th>
+          <th class="r" data-k="costo" role="button" tabindex="0" aria-sort="none">Costo/año <span class="car">▼</span></th>
+          <th data-k="imp" role="button" tabindex="0" aria-sort="none">Impuesto <span class="car">▼</span></th>
+          <th class="r" data-k="neta" role="button" tabindex="0" aria-sort="descending">Neta en tu moneda <span class="car">▼</span></th>
+          <th class="r" data-k="pago" role="button" tabindex="0" aria-sort="none">Pago por periodo <span class="car">▼</span></th>
+          <th data-k="riesgo" role="button" tabindex="0" aria-sort="none">Riesgo <span class="car">▼</span></th>
+          <th data-k="minimo" role="button" tabindex="0" aria-sort="none">Mínimo <span class="car">▼</span></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="callout" id="lectura"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Quién paga de verdad cada mes</h2></div>
+    <div class="card" style="padding:0; overflow-x:auto">
+      <table class="freq-tbl">
+        <thead><tr><th>Instrumento</th><th>Cadencia nativa</th><th>Cómo lo conviertes en pago mensual</th></tr></thead>
+        <tbody>
+          <tr><td>Depósito a plazo (caja o financiera)</td><td>Tú eliges al abrirlo: mensual, trimestral, semestral o al vencimiento</td><td>Ya es mensual. Pide el abono de intereses a tu cuenta de ahorros; si los dejas dentro, capitalizan y rinden algo más.</td></tr>
+          <tr><td>Cuenta de alto rendimiento</td><td>Abono mensual, sin plazo</td><td>Nativa. Es el colchón líquido, no el motor del rendimiento.</td></tr>
+          <tr><td>Bono soberano peruano</td><td>Cupón semestral</td><td>Compra tres bonos con cupones en meses distintos y tendrás pagos repartidos en el año.</td></tr>
+          <tr><td>Letras y notas del Tesoro de EE.UU.</td><td>Letras: todo al vencimiento. Notas: cupón semestral</td><td>Escalera: doce letras con vencimientos en meses consecutivos. Cada mes vence una y decides si cobras o reinviertes.</td></tr>
+          <tr><td>ETF de letras del Tesoro (SGOV, TFLO, USFR)</td><td>Dividendo mensual</td><td>Nativa, y sin escalera que armar. Es la vía más simple a un flujo mensual en dólares.</td></tr>
+          <tr><td>ETF de bonos corporativos (VCIT)</td><td>Dividendo mensual</td><td>Nativa, pero el precio se mueve: el cupón es estable, tu capital no.</td></tr>
+          <tr><td>ETF de opciones cubiertas (JEPI)</td><td>Distribución mensual</td><td>Nativa y alta, aunque variable. Es renta variable disfrazada de renta: el reparto sube y baja con el mercado.</td></tr>
+          <tr><td>Factoring / facturas negociables</td><td>Al vencimiento de cada factura (15 a 180 días)</td><td>Reparte el capital en facturas que vencen en semanas distintas y el cobro se vuelve casi mensual.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Las cuatro rutas de entrada</h2>
+      <div class="note">Costo real de acceder desde Lima</div>
+    </div>
+    <div class="grid3">
+      <div class="route">
+        <h3>Caja o financiera peruana</h3>
+        <div class="cost">Comisión: 0 %</div>
+        <p>La ruta más barata que existe para un peruano: no hay comisión de apertura, ni custodia, ni corretaje. Se abre desde la app en minutos.</p>
+        <ul>
+          <li><b>Cobertura FSD</b> hasta S/ 122 000 por persona y por entidad (jun–ago 2026, se actualiza cada trimestre).</li>
+          <li><b>Impuesto 0 %</b> sobre los intereses, exoneración vigente hasta el 31 de diciembre de 2026.</li>
+          <li>Si tienes más de S/ 122 000, repártelo entre dos o tres entidades.</li>
+        </ul>
+      </div>
+      <div class="route">
+        <h3>SAB peruana (bolsa local)</h3>
+        <div class="cost">Comisión: ~0,3–0,6 % por operación + custodia</div>
+        <p>Para bonos soberanos y corporativos peruanos, y fondos mutuos de deuda. Todo en soles, sin necesidad de sacar el dinero del país.</p>
+        <ul>
+          <li>Cupones semestrales, no mensuales.</li>
+          <li>El precio del bono <b>fluctúa</b>: si vendes antes del vencimiento puedes perder.</li>
+          <li>Renta de segunda categoría: <b>5 %</b> sobre la ganancia.</li>
+        </ul>
+      </div>
+      <div class="route">
+        <h3>Bróker internacional</h3>
+        <div class="cost">Comisión: ~0,10 % en bonos · desde US$ 1 por operación en ETF</div>
+        <p>Interactive Brokers abre cuenta a residentes peruanos sin depósito mínimo y sin mantenimiento. Es la puerta al Tesoro de EE.UU. y a los ETF de renta fija.</p>
+        <ul>
+          <li>No recibe soles: cambia a dólares primero (casa de cambio digital, <b>0,3–0,5 %</b> de spread) y transfiere por wire (<b>S/ 60–150</b> por envío).</li>
+          <li>El efectivo ocioso también paga interés, pero <b>no sobre los primeros US$ 10 000</b>.</li>
+          <li>Todo lo que ganes es renta de fuente extranjera: se declara en Perú.</li>
+        </ul>
+      </div>
+      <div class="route">
+        <h3>Factoring y crowdfactoring</h3>
+        <div class="cost">Comisión: sobre el rendimiento, según plataforma</div>
+        <p>Financias facturas de empresas que ya vendieron. Tasas de dos dígitos, plazos cortos y reinversión frecuente.</p>
+        <ul>
+          <li><b>No hay FSD.</b> Si la empresa deudora no paga, pierdes.</li>
+          <li>Diversifica entre muchas facturas y deudores; nunca todo en una.</li>
+          <li>Verifica que la plataforma esté registrada ante la SBS o la SMV.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Un reparto que sí paga todos los meses</h2>
+      <div class="note" id="ladderNote"></div>
+    </div>
+    <div class="ladder" id="ladder"></div>
+    <div class="callout">
+      <b>Por qué este reparto y no todo en la caja que más paga.</b> La tasa más alta del tablero está en soles y con seguro estatal, así que ahí va el grueso. Pero el seguro se corta en S/ 122 000 por entidad, el sol puede perder frente al dólar y la exoneración de impuestos vence el 31 de diciembre de 2026. El tramo en dólares y el colchón líquido no están ahí para rendir más: están para que un solo evento no te alcance todo el capital a la vez.
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Lo que hay que saber antes de firmar</h2></div>
+    <div class="grid3">
+      <div class="route">
+        <h3>Impuestos, sin sorpresas</h3>
+        <p><b>Depósitos en el sistema financiero peruano:</b> intereses exonerados del impuesto a la renta para personas naturales sin negocio. La prórroga vigente llega hasta el <b>31 de diciembre de 2026</b>; después hay que ver si la renuevan.</p>
+        <p><b>Renta de fuente extranjera</b> (intereses y dividendos de tu bróker en el exterior): se suma a tu renta de trabajo y tributa en la escala progresiva, del 8 % al 30 %. No es 5 %.</p>
+        <p><b>Dividendos de ETF con domicilio en EE.UU.:</b> retención de <b>30 %</b> en la fuente, porque Perú no tiene convenio con Estados Unidos. Los repartos de fondos de letras del Tesoro suelen calificar como interés y evitar esa retención, pero confírmalo con tu bróker cada año.</p>
+      </div>
+      <div class="route">
+        <h3>Riesgos que el número no muestra</h3>
+        <p><b>El seguro tiene tope.</b> S/ 122 000 por persona y por entidad. Dos cuentas en la misma caja no duplican la cobertura; dos entidades distintas, sí.</p>
+        <p><b>El tipo de cambio es un riesgo real.</b> Una tasa de 8,5 % en soles se convierte en 5,5 % medida en dólares si el sol se deprecia 3 %. Elige la moneda en la que vas a gastar, no la que más rinde.</p>
+        <p><b>Duración.</b> Un bono a 10 años paga más, pero si las tasas suben su precio cae. Solo tiene sentido si puedes esperar al vencimiento.</p>
+        <p><b>Impuesto sucesorio de EE.UU.:</b> un no residente con más de <b>US$ 60 000</b> en activos con domicilio estadounidense queda expuesto. Los ETF UCITS domiciliados en Irlanda son la salida habitual.</p>
+      </div>
+      <div class="route">
+        <h3>Cómo leer las tasas</h3>
+        <p><b>TEA</b> es la tasa efectiva anual que ofrece la entidad. <b>TREA</b> ya descuenta los costos del producto: es la que compara de verdad. Cuando te ofrezcan una tasa, pregunta cuál de las dos es.</p>
+        <p><b>La tasa de campaña no es la tasa de tabla.</b> Las cifras más altas del tablero suelen exigir plazo largo, dinero nuevo o un monto mínimo. Confirma las tres condiciones antes de mover el dinero.</p>
+        <p><b>Retirar antes rompe la tasa.</b> En un depósito a plazo, cancelar anticipadamente suele castigarte con la tasa de ahorros, que es varias veces menor.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="foot-rule">
+  <div class="notes">
+    <h3>Notas y fuentes</h3>
+    <ol>
+      <li>Tasas de depósitos en soles: promedios SBS a marzo de 2026 publicados por Infobae, y tasas de campaña de cajas municipales recogidas en agosto de 2026. Las campañas cambian de un mes a otro.</li>
+      <li>Tasas de depósitos en dólares: reporte SBS del 22 de julio de 2026. Varias entidades ajustan la tasa según el monto depositado, por lo que la cifra mostrada corresponde al tramo alto.</li>
+      <li>Rendimientos del Tesoro de EE.UU.: curva par al 1 de septiembre de 2026. ETF: rendimiento de distribución y ratio de gastos publicados por el emisor a agosto de 2026.</li>
+      <li>Tasa de referencia del BCRP en 4,25 % desde enero de 2026; rango de fondos federales en 3,50–3,75 % tras la reunión de julio de 2026.</li>
+      <li>Las cifras marcadas <span class="flag">est.</span> son estimaciones a partir de instrumentos equivalentes, no datos publicados por el emisor.</li>
+      <li>El cálculo del pago por periodo usa el interés equivalente de la tasa neta anual, es decir <span class="mono">(1 + TEA)<sup>1/n</sup> − 1</span>, que es lo que corresponde cuando retiras los intereses en lugar de capitalizarlos.</li>
+      <li>Para instrumentos en dólares vistos desde soles, el panel aplica el tipo de cambio y la variación anual que elijas arriba. Ninguna de las dos es un pronóstico del autor.</li>
+      <li>Este panel es material informativo, no asesoría de inversión. Las tasas cambian, las campañas vencen y las condiciones de cada producto están en su contrato. Confirma con la entidad antes de colocar tu dinero.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ datos ============ */
+/* tea: % anual bruto · costo: % anual de comisiones · imp: régimen tributario
+   frec: frecuencias de pago nativas · plazoMin: meses de inmovilización
+   riesgo 1..5 · esc: se puede armar escalera para flujo mensual            */
+var D = [
+ /* --- Perú, soles --- */
+ {n:"Caja Arequipa", e:"Depósito a plazo, campaña", m:"PEN", tea:8.50, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:200, fte:"Campaña ago 2026"},
+ {n:"Caja Huancayo", e:"Plazo fijo Plus Ahorro", m:"PEN", tea:8.25, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"Campaña ago 2026"},
+ {n:"Caja Piura", e:"Depósito a plazo", m:"PEN", tea:8.00, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"Campaña ago 2026"},
+ {n:"Caja Cusco", e:"Plazo fijo, más de 360 días", m:"PEN", tea:7.13, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Caja Incasur", e:"Plazo fijo, más de 360 días", m:"PEN", tea:6.04, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Caja Los Andes", e:"Plazo fijo, más de 360 días", m:"PEN", tea:5.96, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Financiera Efectiva", e:"Depósito a plazo", m:"PEN", tea:5.87, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Financiera Surgir", e:"Depósito a plazo", m:"PEN", tea:5.60, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Banco Compartamos", e:"Depósito a plazo", m:"PEN", tea:5.19, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Banco GNB", e:"Depósito a plazo", m:"PEN", tea:4.70, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:500, fte:"SBS mar 2026"},
+ {n:"Interbank", e:"Depósito a plazo", m:"PEN", tea:3.76, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:1, min:500, fte:"SBS mar 2026"},
+ {n:"Banco Pichincha", e:"Cuenta de alto rendimiento, liquidez diaria", m:"PEN", tea:3.75, costo:0, imp:"exo", frec:[12], plazoMin:0, riesgo:1, min:3000, fte:"Tarifario 2026"},
+ {n:"BCP", e:"Depósito a plazo", m:"PEN", tea:2.87, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:1, min:500, fte:"SBS mar 2026"},
+ {n:"Bono soberano 10 años", e:"Vía SAB, cupón semestral", m:"PEN", tea:7.80, costo:0.40, imp:"2da", frec:[2], plazoMin:0, riesgo:3, min:1000, fte:"Mercado 2026", est:true},
+ {n:"Bono soberano 2–3 años", e:"Vía SAB, cupón semestral", m:"PEN", tea:6.50, costo:0.40, imp:"2da", frec:[2], plazoMin:0, riesgo:2, min:1000, fte:"Mercado 2026", est:true},
+
+ /* --- Perú, dólares --- */
+ {n:"Financiera Qapaq", e:"Plazo fijo US$, desde 10 000", m:"USD", tea:5.00, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:10000, fte:"SBS jul 2026"},
+ {n:"InFinance XP", e:"Plazo fijo en dólares", m:"USD", tea:3.00, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:3000, fte:"SBS jul 2026"},
+ {n:"Financiera Surgir US$", e:"Plazo fijo en dólares", m:"USD", tea:2.90, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:3000, fte:"SBS jul 2026"},
+ {n:"Alfin Banco", e:"Plazo fijo en dólares, 360 días", m:"USD", tea:2.50, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:1000, fte:"Tarifario 2026"},
+ {n:"Banco Pichincha US$", e:"Cuenta de ahorro en dólares", m:"USD", tea:2.25, costo:0, imp:"exo", frec:[12], plazoMin:0, riesgo:1, min:1, fte:"Tarifario 2026"},
+ {n:"Banco Falabella US$", e:"Plazo fijo en dólares", m:"USD", tea:2.00, costo:0, imp:"exo", frec:[12,4,2,1], plazoMin:12, riesgo:2, min:3000, fte:"SBS jul 2026"},
+
+ /* --- Mundo, vía bróker --- */
+ {n:"Letra del Tesoro EE.UU. 1 año", e:"Compra directa, cobro al vencimiento", m:"USD", tea:4.18, costo:0.10, imp:"ext", frec:[1], plazoMin:12, riesgo:1, min:1000, fte:"Curva par 1 sep 2026", esc:true},
+ {n:"Nota del Tesoro 2 años", e:"Cupón semestral", m:"USD", tea:4.40, costo:0.10, imp:"ext", frec:[2], plazoMin:0, riesgo:2, min:1000, fte:"Curva par 1 sep 2026"},
+ {n:"Nota del Tesoro 5 años", e:"Cupón semestral", m:"USD", tea:4.57, costo:0.10, imp:"ext", frec:[2], plazoMin:0, riesgo:3, min:1000, fte:"Curva par 1 sep 2026"},
+ {n:"Nota del Tesoro 10 años", e:"Cupón semestral", m:"USD", tea:4.81, costo:0.10, imp:"ext", frec:[2], plazoMin:0, riesgo:3, min:1000, fte:"Curva par 1 sep 2026"},
+ {n:"TFLO", e:"ETF de letras a tasa flotante, pago mensual", m:"USD", tea:3.83, costo:0.15, imp:"ext", frec:[12], plazoMin:0, riesgo:1, min:55, fte:"Emisor ago 2026"},
+ {n:"USFR", e:"ETF de letras a tasa flotante, pago mensual", m:"USD", tea:3.82, costo:0.15, imp:"ext", frec:[12], plazoMin:0, riesgo:1, min:52, fte:"Emisor ago 2026"},
+ {n:"SGOV", e:"ETF de letras 0–3 meses, pago mensual", m:"USD", tea:3.79, costo:0.09, imp:"ext", frec:[12], plazoMin:0, riesgo:1, min:101, fte:"Emisor ago 2026"},
+ {n:"VCIT", e:"ETF corporativo grado inversión, pago mensual", m:"USD", tea:4.75, costo:0.04, imp:"ext", frec:[12], plazoMin:0, riesgo:3, min:82, fte:"Emisor ago 2026"},
+ {n:"IB01 (UCITS, Irlanda)", e:"Letras 0–1 año, acumula, no reparte", m:"USD", tea:3.90, costo:0.07, imp:"ext", frec:[], plazoMin:0, riesgo:1, min:110, fte:"Estimado sobre letras 0–1a", est:true},
+ {n:"Efectivo en el bróker", e:"Interés sobre saldo ocioso en US$", m:"USD", tea:3.13, costo:0, imp:"ext", frec:[12], plazoMin:0, riesgo:1, min:10000, fte:"Tarifa ago 2026"},
+ {n:"JEPI", e:"ETF de opciones cubiertas, reparto mensual variable", m:"USD", tea:8.04, costo:0.35, imp:"us30", frec:[12], plazoMin:0, riesgo:4, min:58, fte:"Emisor ago 2026"},
+
+ /* --- Alternativo Perú --- */
+ {n:"Factoring de facturas", e:"Plataformas registradas, sin seguro de depósitos", m:"PEN", tea:18.00, costo:0, imp:"2da", frec:[12,4], plazoMin:1, riesgo:4, min:1000, fte:"Rango de mercado 2026", est:true}
+];
+
+var INFL = {PEN:3.2, USD:2.6};
+var IMP_LABEL = {exo:"Exonerado", "2da":"5 % segunda cat.", ext:"Renta extranjera", us30:"30 % EE.UU. + Perú"};
+
+/* ============ estado ============ */
+var S = {capital:50000, moneda:"PEN", frec:12, horizonte:12, perfil:3, tramo:14, tc:3.45, drift:0, soloFrec:true, barMode:"neta", sortKey:"neta", sortDir:-1};
+
+var $ = function(id){ return document.getElementById(id); };
+var fmtPct = function(v){ return v.toFixed(2).replace(".", ",") + " %"; };
+var fmtMoney = function(v, cur){
+  var s = Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("es-PE") : v.toFixed(2).replace(".", ",");
+  return (cur === "PEN" ? "S/ " : "US$ ") + s;
+};
+
+function tasaImpuesto(imp){
+  if (imp === "exo") return 0;
+  if (imp === "2da") return 0.05;
+  if (imp === "ext") return S.tramo / 100;
+  if (imp === "us30") return Math.max(0.30, S.tramo / 100);
+  return 0;
+}
+
+/* rendimiento neto anual expresado en la moneda del usuario */
+function calcular(d){
+  var bruta = (d.tea - d.costo) / 100;
+  var neta = bruta * (1 - tasaImpuesto(d.imp));
+  if (d.m !== S.moneda){
+    /* drift positivo = el sol se deprecia = el activo en dólares gana en soles */
+    var fx = S.drift / 100;
+    neta = S.moneda === "PEN" ? (1 + neta) * (1 + fx) - 1 : (1 + neta) / (1 + fx) - 1;
+  }
+  var infl = INFL[S.moneda] / 100;
+  return {
+    neta: neta * 100,
+    real: ((1 + neta) / (1 + infl) - 1) * 100,
+    pago: S.capital * (Math.pow(1 + neta, 1 / S.frec) - 1),
+    anual: S.capital * neta
+  };
+}
+
+function pagaEnFrecuencia(d){
+  if (d.frec.indexOf(S.frec) >= 0) return "nativo";
+  if (d.esc && S.frec === 12) return "escalera";
+  if (d.frec.length && d.frec[0] > S.frec) return "nativo"; /* paga más seguido de lo pedido */
+  return "no";
+}
+
+function minimoEnMoneda(d){
+  if (d.m === S.moneda) return d.min;
+  return d.m === "USD" ? d.min * S.tc : d.min / S.tc;
+}
+
+function filtrar(){
+  return D.filter(function(d){
+    if (d.riesgo > S.perfil) return false;
+    if (d.plazoMin > S.horizonte) return false;
+    if (minimoEnMoneda(d) > S.capital) return false;
+    if (S.soloFrec && pagaEnFrecuencia(d) === "no") return false;
+    return true;
+  }).map(function(d){
+    var c = calcular(d);
+    return {d:d, nombre:d.n, moneda:d.m, tea:d.tea, costo:d.costo, imp:d.imp,
+            neta:c.neta, real:c.real, pago:c.pago, anual:c.anual,
+            riesgo:d.riesgo, minimo:minimoEnMoneda(d), modo:pagaEnFrecuencia(d)};
+  });
+}
+
+/* ============ podio ============ */
+var FREC_NOMBRE = {12:"mes", 4:"trimestre", 2:"semestre", 1:"año"};
+var FREC_ADJ = {12:"mensual", 4:"trimestral", 2:"semestral", 1:"anual"};
+
+function pintarPodio(rows){
+  var top = rows.slice().sort(function(a,b){ return b.neta - a.neta; }).slice(0,3);
+  var host = $("podium");
+  if (!top.length){ host.innerHTML = '<div class="card empty">Ninguna opción cumple todos tus filtros. Prueba con un plazo más largo, un capital mayor o desmarcando la casilla de frecuencia.</div>'; $("podioNote").textContent = ""; return; }
+  host.innerHTML = top.map(function(r,i){
+    var modo = r.modo === "escalera" ? "Con escalera de vencimientos" : "Pago " + FREC_ADJ[S.frec] + " directo";
+    return '<div class="win' + (i===0 ? ' top' : '') + '">' +
+      '<div class="rank">' + (i+1) + '</div>' +
+      '<div class="who">' + r.nombre + '</div>' +
+      '<div class="where">' + r.d.e + '</div>' +
+      '<div class="amt">' + fmtMoney(r.pago, S.moneda) + '</div>' +
+      '<div class="amt-l">cada ' + FREC_NOMBRE[S.frec] + ', neto &middot; ' + modo + '</div>' +
+      '<div class="foot"><span>Neta <b>' + fmtPct(r.neta) + '</b></span>' +
+      '<span>Real <b>' + fmtPct(r.real) + '</b></span>' +
+      '<span>Al año <b>' + fmtMoney(r.anual, S.moneda) + '</b></span></div>' +
+    '</div>';
+  }).join("");
+  $("podioNote").textContent = rows.length + " opciones pasan tus filtros, de " + D.length + " en el tablero";
+}
+
+/* ============ gráfico de barras ============ */
+function pintarBarras(rows){
+  var key = S.barMode;
+  var data = rows.slice().sort(function(a,b){ return b[key] - a[key]; }).slice(0,14);
+  var svg = $("barChart");
+  if (!data.length){ svg.innerHTML = ""; svg.setAttribute("viewBox","0 0 100 10"); return; }
+  var W = 620, padL = 186, padR = 62, padT = 18, padB = 26, rowH = 26;
+  var H = padT + data.length * rowH + padB;
+  var vals = data.map(function(r){ return r[key]; });
+  var maxV = Math.max.apply(null, vals), minV = Math.min.apply(null, vals);
+  var lo = Math.min(0, Math.floor(minV)), hi = Math.max(1, Math.ceil(maxV) + 0.5);
+  var x = function(v){ return padL + (v - lo) / (hi - lo) * (W - padL - padR); };
+  var out = [];
+  /* rejilla */
+  var step = hi - lo > 12 ? 4 : 2;
+  for (var t = Math.ceil(lo/step)*step; t <= hi; t += step){
+    out.push('<line x1="'+x(t).toFixed(1)+'" y1="'+padT+'" x2="'+x(t).toFixed(1)+'" y2="'+(H-padB)+'" stroke="var(--grid)" stroke-width="1"/>');
+    out.push('<text class="lbl" x="'+x(t).toFixed(1)+'" y="'+(H-padB+16)+'" fill="var(--ink-3)" font-size="10.5" text-anchor="middle">'+t+' %</text>');
+  }
+  out.push('<line x1="'+x(0).toFixed(1)+'" y1="'+padT+'" x2="'+x(0).toFixed(1)+'" y2="'+(H-padB)+'" stroke="var(--line-strong)" stroke-width="1"/>');
+  data.forEach(function(r, i){
+    var y = padT + i * rowH, v = r[key];
+    var x0 = x(Math.min(0, v)), x1 = x(Math.max(0, v));
+    var w = Math.max(2, x1 - x0);
+    var col = r.moneda === "PEN" ? "var(--pen)" : "var(--usd)";
+    var name = r.nombre.length > 26 ? r.nombre.slice(0,25) + "…" : r.nombre;
+    out.push('<text class="lbl" x="'+(padL-10)+'" y="'+(y+15)+'" fill="var(--ink-2)" font-size="11.5" text-anchor="end">'+name+'</text>');
+    out.push('<rect class="bar" data-i="'+i+'" x="'+x0.toFixed(1)+'" y="'+(y+5)+'" width="'+w.toFixed(1)+'" height="13" rx="4" fill="'+col+'"/>');
+    out.push('<text x="'+(x1+7).toFixed(1)+'" y="'+(y+15)+'" fill="var(--ink)" font-size="11" font-weight="600">'+fmtPct(v)+'</text>');
+  });
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.style.width = "100%"; svg.style.minWidth = "540px"; svg.style.height = "auto";
+  svg.innerHTML = out.join("");
+  Array.prototype.forEach.call(svg.querySelectorAll("rect.bar"), function(el){
+    var r = data[+el.getAttribute("data-i")];
+    el.addEventListener("mousemove", function(ev){
+      mostrarTip(ev, "<b>"+r.nombre+"</b><span>TEA bruta "+fmtPct(r.tea)+" · costo "+fmtPct(r.costo)+"<br>"+IMP_LABEL[r.imp]+"<br>Neta "+fmtPct(r.neta)+" · real "+fmtPct(r.real)+"<br>"+fmtMoney(r.pago,S.moneda)+" cada "+FREC_NOMBRE[S.frec]+"</span>");
+    });
+    el.addEventListener("mouseleave", ocultarTip);
+  });
+  $("barSub").textContent = key === "neta"
+    ? "Después de comisiones e impuestos, en " + (S.moneda === "PEN" ? "soles" : "dólares") + "."
+    : "Neto y descontando la inflación de " + (S.moneda === "PEN" ? "3,2 % en soles" : "2,6 % en dólares") + ": lo que de verdad ganas en poder de compra.";
+}
+
+/* ============ dispersión ============ */
+function pintarScatter(rows){
+  var svg = $("scatter");
+  if (!rows.length){ svg.innerHTML = ""; svg.setAttribute("viewBox","0 0 100 10"); return; }
+  var W = 420, H = 300, padL = 44, padR = 20, padT = 16, padB = 44;
+  var vals = rows.map(function(r){ return r.neta; });
+  var hi = Math.max.apply(null, vals), lo = Math.min.apply(null, vals);
+  hi = Math.ceil(hi) + 0.5; lo = Math.min(0, Math.floor(lo));
+  var x = function(v){ return padL + (v - 0.5) / 4.5 * (W - padL - padR); };
+  var y = function(v){ return H - padB - (v - lo) / (hi - lo) * (H - padT - padB); };
+  var out = [];
+  var step = hi - lo > 12 ? 4 : 2;
+  for (var t = Math.ceil(lo/step)*step; t <= hi; t += step){
+    out.push('<line x1="'+padL+'" y1="'+y(t).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y(t).toFixed(1)+'" stroke="var(--grid)" stroke-width="1"/>');
+    out.push('<text class="lbl" x="'+(padL-8)+'" y="'+(y(t)+3.5).toFixed(1)+'" fill="var(--ink-3)" font-size="10.5" text-anchor="end">'+t+' %</text>');
+  }
+  var etiquetas = ["Muy bajo","Bajo","Medio","Alto","Muy alto"];
+  for (var k = 1; k <= 5; k++){
+    out.push('<text class="lbl" x="'+x(k).toFixed(1)+'" y="'+(H-padB+18)+'" fill="var(--ink-3)" font-size="10" text-anchor="middle">'+etiquetas[k-1]+'</text>');
+  }
+  out.push('<text class="lbl" x="'+((padL+W-padR)/2)+'" y="'+(H-6)+'" fill="var(--ink-3)" font-size="10.5" text-anchor="middle">riesgo del instrumento</text>');
+  out.push('<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="var(--line-strong)" stroke-width="1"/>');
+  /* jitter determinista para que no se pisen los puntos */
+  rows.forEach(function(r, i){
+    var jx = ((i * 37) % 11 - 5) * 2.6;
+    var cx = x(r.riesgo) + jx, cy = y(r.neta);
+    var col = r.moneda === "PEN" ? "var(--pen)" : "var(--usd)";
+    out.push('<circle class="pt" data-i="'+i+'" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="5.5" fill="'+col+'" stroke="var(--surface)" stroke-width="2"/>');
+  });
+  var mejor = rows.slice().sort(function(a,b){ return b.neta - a.neta; })[0];
+  if (mejor){
+    var mi = rows.indexOf(mejor);
+    var mx = x(mejor.riesgo) + ((mi * 37) % 11 - 5) * 2.6, my = y(mejor.neta);
+    var anchor = mx > W - 130 ? "end" : "start";
+    out.push('<text class="lbl" x="'+(mx + (anchor === "end" ? -10 : 10))+'" y="'+(my+4)+'" fill="var(--ink)" font-size="11" font-weight="600" text-anchor="'+anchor+'">'+mejor.nombre+'</text>');
+  }
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.style.width = "100%"; svg.style.minWidth = "330px"; svg.style.height = "auto";
+  svg.innerHTML = out.join("");
+  Array.prototype.forEach.call(svg.querySelectorAll("circle.pt"), function(el){
+    var r = rows[+el.getAttribute("data-i")];
+    el.addEventListener("mousemove", function(ev){
+      mostrarTip(ev, "<b>"+r.nombre+"</b><span>Neta "+fmtPct(r.neta)+" · riesgo "+etiquetas[r.riesgo-1].toLowerCase()+"<br>"+fmtMoney(r.pago,S.moneda)+" cada "+FREC_NOMBRE[S.frec]+"</span>");
+    });
+    el.addEventListener("mouseleave", ocultarTip);
+  });
+}
+
+/* ============ tabla ============ */
+function pintarTabla(rows){
+  var k = S.sortKey, dir = S.sortDir;
+  var orden = rows.slice().sort(function(a,b){
+    var va = a[k], vb = b[k];
+    if (typeof va === "string") return va.localeCompare(vb) * dir;
+    return (va - vb) * dir;
+  });
+  var tb = $("tbody");
+  if (!orden.length){ tb.innerHTML = '<tr><td colspan="9" class="empty">Sin resultados con estos filtros.</td></tr>'; $("tblNote").textContent = ""; return; }
+  tb.innerHTML = orden.map(function(r){
+    var esc = r.modo === "escalera" ? ' <span class="dot-esc">· vía escalera</span>' : (r.modo === "no" ? ' <span class="flag">no paga ' + FREC_ADJ[S.frec] + '</span>' : '');
+    return '<tr>' +
+      '<td class="name"><b>' + r.nombre + (r.d.est ? ' <span class="flag">est.</span>' : '') + '</b><small>' + r.d.e + esc + '</small></td>' +
+      '<td><span class="chip ' + (r.moneda === "PEN" ? "pen" : "usd") + '">' + (r.moneda === "PEN" ? "S/" : "US$") + '</span></td>' +
+      '<td class="r">' + fmtPct(r.tea) + '</td>' +
+      '<td class="r">' + (r.costo ? fmtPct(r.costo) : "—") + '</td>' +
+      '<td style="font-size:12.5px;color:var(--ink-2)">' + IMP_LABEL[r.imp] + '</td>' +
+      '<td class="r" style="font-weight:600">' + fmtPct(r.neta) + '</td>' +
+      '<td class="r">' + fmtMoney(r.pago, S.moneda) + '</td>' +
+      '<td><span class="risk r' + r.riesgo + '"><i></i><i></i><i></i><i></i><i></i></span></td>' +
+      '<td class="r" style="font-size:12.5px;color:var(--ink-2)">' + fmtMoney(r.minimo, S.moneda) + '</td>' +
+    '</tr>';
+  }).join("");
+  $("tblNote").textContent = "Ordenado por " + ({nombre:"nombre",moneda:"moneda",tea:"TEA bruta",costo:"costo",imp:"impuesto",neta:"tasa neta",pago:"pago por periodo",riesgo:"riesgo",minimo:"mínimo"})[k] + ". Haz clic en cualquier encabezado.";
+}
+
+/* ============ lectura del tablero ============ */
+function pintarLectura(rows){
+  var el = $("lectura");
+  if (!rows.length){ el.innerHTML = "<b>Sin resultados.</b> Afloja algún filtro para volver a ver el tablero."; return; }
+  var pen = rows.filter(function(r){ return r.moneda === "PEN"; });
+  var usd = rows.filter(function(r){ return r.moneda === "USD"; });
+  var mejorPen = pen.length ? pen.reduce(function(a,b){ return b.neta > a.neta ? b : a; }) : null;
+  var mejorUsd = usd.length ? usd.reduce(function(a,b){ return b.neta > a.neta ? b : a; }) : null;
+  var t = "<b>Cómo se lee este tablero hoy.</b> ";
+  if (mejorPen && mejorUsd){
+    var brecha = mejorPen.neta - mejorUsd.neta;
+    t += "Lo mejor en soles rinde " + fmtPct(mejorPen.neta) + " neto (" + mejorPen.nombre + ") y lo mejor en dólares " + fmtPct(mejorUsd.neta) + " (" + mejorUsd.nombre + "). ";
+    if (brecha > 1.5){
+      t += "La brecha es de " + brecha.toFixed(1).replace(".", ",") + " puntos a favor del sol, y esa brecha es exactamente lo que te paga el mercado por aceptar riesgo cambiario. Si tus gastos son en soles, cobrarla tiene sentido; si ahorras para algo en dólares, no.";
+    } else if (brecha > -1.5){
+      t += "Las dos monedas rinden prácticamente lo mismo una vez descontados impuestos y costos, así que la decisión se reduce a en qué moneda vas a gastar el dinero.";
+    } else {
+      t += "Con tus supuestos el dólar termina arriba, sobre todo por la variación cambiaria que elegiste. Cambia ese control y verás cuánto pesa ese solo supuesto.";
+    }
+  } else if (mejorPen){
+    t += "Solo quedan opciones en soles con tus filtros; la mejor rinde " + fmtPct(mejorPen.neta) + " neto.";
+  } else if (mejorUsd){
+    t += "Solo quedan opciones en dólares con tus filtros; la mejor rinde " + fmtPct(mejorUsd.neta) + " neto.";
+  }
+  var real = rows.reduce(function(a,b){ return b.real > a.real ? b : a; });
+  t += " En poder de compra, lo máximo que consigues hoy es " + fmtPct(real.real) + " real anual.";
+  el.innerHTML = t;
+}
+
+/* ============ escalera sugerida ============ */
+function pintarLadder(){
+  var cap = S.capital;
+  var tope = S.moneda === "PEN" ? 122000 : 122000 / S.tc;
+  var pesos = [
+    {p:0.50, sel:function(r){ return r.moneda === "PEN" && r.d.imp === "exo" && r.riesgo <= 2; },
+     t:"Núcleo en depósitos a plazo", s:"Reparte entre dos o tres cajas para no pasar el tope del FSD en ninguna."},
+    {p:0.25, sel:function(r){ return r.moneda === "USD" && r.riesgo <= 2 && r.d.frec.indexOf(12) >= 0; },
+     t:"Tramo en dólares", s:"Tu seguro contra una devaluación del sol, con cobro mensual."},
+    {p:0.15, sel:function(r){ return r.riesgo <= 3 && r.d.plazoMin === 0 && r.d.frec.indexOf(12) >= 0; },
+     t:"Tramo de mayor plazo o crédito", s:"Rinde algo más a cambio de que el precio se mueva mientras tanto."},
+    {p:0.10, sel:function(r){ return r.d.plazoMin === 0 && r.riesgo <= 2 && r.d.frec.indexOf(12) >= 0; },
+     t:"Colchón líquido", s:"Disponible el mismo día. No es para rendir, es para no romper un plazo fijo."}
+  ];
+  var universo = D.map(function(d){ var c = calcular(d); return {d:d, nombre:d.n, moneda:d.m, riesgo:d.riesgo, neta:c.neta}; })
+                  .filter(function(r){ return minimoEnMoneda(r.d) <= cap; });
+  var html = "", totalAnual = 0, usados = {};
+  pesos.forEach(function(w){
+    var cands = universo.filter(w.sel).filter(function(r){ return !usados[r.nombre]; })
+                        .sort(function(a,b){ return b.neta - a.neta; });
+    var pick = cands[0];
+    var monto = cap * w.p;
+    if (!pick){
+      html += '<div class="ladder-row"><div class="pct">' + Math.round(w.p*100) + '%</div>' +
+        '<div class="what"><b>' + w.t + '</b><span>Sin candidato con tus filtros actuales de capital y moneda.</span></div>' +
+        '<div class="money">' + fmtMoney(monto, S.moneda) + '<small>sin asignar</small></div></div>';
+      return;
+    }
+    usados[pick.nombre] = true;
+    var anual = monto * pick.neta / 100;
+    totalAnual += anual;
+    var extra = (w.p === 0.50 && monto > tope) ? " Este monto supera el tope del seguro en una sola entidad: divídelo." : "";
+    html += '<div class="ladder-row"><div class="pct">' + Math.round(w.p*100) + '%</div>' +
+      '<div class="what"><b>' + w.t + ' &middot; ' + pick.nombre + '</b><span>' + w.s + extra + '</span></div>' +
+      '<div class="money">' + fmtMoney(monto, S.moneda) + '<small>' + fmtPct(pick.neta) + ' neto</small></div></div>';
+  });
+  $("ladder").innerHTML = html +
+    '<div class="ladder-sum"><span>Rendimiento neto ponderado de la cartera <b>' + fmtPct(cap ? totalAnual / cap * 100 : 0) + '</b></span>' +
+    '<span>Ingreso estimado <b>' + fmtMoney(totalAnual / 12, S.moneda) + '</b> al mes &middot; <b>' + fmtMoney(totalAnual, S.moneda) + '</b> al año</span></div>';
+  $("ladderNote").textContent = "Sobre " + fmtMoney(cap, S.moneda) + ", con las mejores opciones que pasan tus filtros";
+}
+
+/* ============ tooltip ============ */
+var tip = $("tip");
+function mostrarTip(ev, html){
+  tip.innerHTML = html; tip.classList.add("on");
+  var w = tip.offsetWidth, h = tip.offsetHeight;
+  var x = ev.clientX + 14, y = ev.clientY - h - 12;
+  if (x + w > window.innerWidth - 8) x = ev.clientX - w - 14;
+  if (y < 8) y = ev.clientY + 18;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+function ocultarTip(){ tip.classList.remove("on"); }
+
+/* ============ render ============ */
+function render(){
+  var rows = filtrar();
+  pintarPodio(rows);
+  pintarBarras(rows);
+  pintarScatter(rows);
+  pintarTabla(rows);
+  pintarLectura(rows);
+  pintarLadder();
+  $("chartNote").textContent = "Capital de " + fmtMoney(S.capital, S.moneda) + " · cobro " + FREC_ADJ[S.frec];
+}
+
+/* ============ eventos ============ */
+$("capital").addEventListener("input", function(){ S.capital = Math.max(0, +this.value || 0); render(); });
+$("moneda").addEventListener("change", function(){
+  var prev = S.moneda; S.moneda = this.value;
+  var cap = +$("capital").value || 0;
+  if (prev !== S.moneda){
+    cap = S.moneda === "USD" ? cap / S.tc : cap * S.tc;
+    cap = Math.round(cap / 100) * 100;
+    $("capital").value = cap; S.capital = cap;
+  }
+  render();
+});
+$("horizonte").addEventListener("change", function(){ S.horizonte = +this.value; render(); });
+$("perfil").addEventListener("change", function(){ S.perfil = +this.value; render(); });
+$("tramo").addEventListener("change", function(){ S.tramo = +this.value; render(); });
+$("tc").addEventListener("input", function(){ S.tc = +this.value || 3.45; render(); });
+$("drift").addEventListener("change", function(){ S.drift = +this.value; render(); });
+$("soloFrec").addEventListener("change", function(){ S.soloFrec = this.checked; render(); });
+
+Array.prototype.forEach.call($("frecSeg").querySelectorAll("button"), function(b){
+  b.addEventListener("click", function(){
+    Array.prototype.forEach.call($("frecSeg").querySelectorAll("button"), function(o){ o.setAttribute("aria-pressed", "false"); });
+    b.setAttribute("aria-pressed", "true");
+    S.frec = +b.getAttribute("data-f"); render();
+  });
+});
+Array.prototype.forEach.call($("barSeg").querySelectorAll("button"), function(b){
+  b.addEventListener("click", function(){
+    Array.prototype.forEach.call($("barSeg").querySelectorAll("button"), function(o){ o.setAttribute("aria-pressed", "false"); });
+    b.setAttribute("aria-pressed", "true");
+    S.barMode = b.getAttribute("data-m"); render();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#tabla thead th"), function(th){
+  function ordenar(){
+    var k = th.getAttribute("data-k");
+    if (S.sortKey === k) S.sortDir = -S.sortDir;
+    else { S.sortKey = k; S.sortDir = (k === "nombre" || k === "moneda" || k === "imp") ? 1 : -1; }
+    Array.prototype.forEach.call(document.querySelectorAll("#tabla thead th"), function(o){ o.setAttribute("aria-sort", "none"); });
+    th.setAttribute("aria-sort", S.sortDir === 1 ? "ascending" : "descending");
+    th.querySelector(".car").textContent = S.sortDir === 1 ? "▲" : "▼";
+    render();
+  }
+  th.addEventListener("click", ordenar);
+  th.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); ordenar(); } });
+});
+
+render();
+})();
+</script>

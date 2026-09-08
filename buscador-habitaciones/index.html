@@ -1,0 +1,750 @@
+<title>Cuartos cerca de Camino Real</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  :root{
+    --ground:#F1F3EE;
+    --surface:#FFFFFF;
+    --surface-2:#E7EBE3;
+    --line:#D2D8CA;
+    --line-soft:#E2E7DC;
+    --ink:#161C17;
+    --ink-2:#3C463D;
+    --muted:#6B7669;
+    --accent:#2F6B4F;
+    --accent-soft:#DCEADF;
+    --warn:#8A5A00;
+    --warn-soft:#F4E7CC;
+    --crit:#9B3B2F;
+    --crit-soft:#F3DED9;
+    --ring:#C2CBB8;
+    --shadow:0 1px 2px rgba(22,28,23,.06), 0 8px 24px -12px rgba(22,28,23,.18);
+    --r:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#12160F;
+      --surface:#1A1F18;
+      --surface-2:#222820;
+      --line:#333A2F;
+      --line-soft:#272E24;
+      --ink:#E9EDE5;
+      --ink-2:#C3CBBC;
+      --muted:#8C9686;
+      --accent:#7CC29A;
+      --accent-soft:#1E3428;
+      --warn:#D9A94A;
+      --warn-soft:#33290F;
+      --crit:#E08472;
+      --crit-soft:#39201B;
+      --ring:#39422F;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12160F;
+    --surface:#1A1F18;
+    --surface-2:#222820;
+    --line:#333A2F;
+    --line-soft:#272E24;
+    --ink:#E9EDE5;
+    --ink-2:#C3CBBC;
+    --muted:#8C9686;
+    --accent:#7CC29A;
+    --accent-soft:#1E3428;
+    --warn:#D9A94A;
+    --warn-soft:#33290F;
+    --crit:#E08472;
+    --crit-soft:#39201B;
+    --ring:#39422F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 72px}
+
+  h1,h2,h3,.disp{
+    font-family:"Archivo","Archivo Narrow",system-ui,sans-serif;
+    font-variation-settings:"wdth" 108;
+    font-weight:700;
+    letter-spacing:-.015em;
+    text-wrap:balance;
+    margin:0;
+  }
+  h1{font-size:clamp(30px,4.6vw,46px);line-height:1.05}
+  h2{font-size:22px;line-height:1.2}
+  h3{font-size:16px;line-height:1.25}
+  p{margin:0}
+  a{color:var(--accent)}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:11.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+  /* ---------- header ---------- */
+  header.top{display:flex;flex-direction:column;gap:14px;padding-bottom:26px;border-bottom:1px solid var(--line)}
+  .lede{max-width:62ch;color:var(--ink-2);font-size:17px}
+  .pin{
+    display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+    background:var(--accent-soft);color:var(--accent);
+    border-radius:999px;padding:4px 12px 4px 9px;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.02em;
+  }
+  .pin svg{flex:none}
+
+  .stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:4px}
+  .stat{display:flex;flex-direction:column;gap:1px}
+  .stat .v{font-family:"Archivo",system-ui,sans-serif;font-variation-settings:"wdth" 100;font-weight:700;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+  .stat .k{font-size:12.5px;color:var(--muted)}
+
+  /* ---------- layout ---------- */
+  .cols{display:grid;grid-template-columns:308px minmax(0,1fr);gap:34px;align-items:start;margin-top:30px}
+  @media (max-width:880px){.cols{grid-template-columns:1fr;gap:26px}}
+
+  .rail{display:flex;flex-direction:column;gap:22px;position:sticky;top:16px}
+  @media (max-width:880px){.rail{position:static}}
+
+  /* ---------- radar ---------- */
+  .radar{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 10px}
+  .radar svg{display:block;width:100%;height:auto}
+  .radar-foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);padding-top:6px;border-top:1px solid var(--line-soft);margin-top:8px}
+  .r-ring{fill:none;stroke:var(--ring);stroke-width:1}
+  .r-ring.dashed{stroke-dasharray:3 4}
+  .r-ring.edge{stroke:var(--accent);stroke-width:1.4;stroke-dasharray:none;opacity:.55}
+  .r-label{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:8.5px}
+  .r-cross{stroke:var(--line-soft);stroke-width:1}
+  .r-dot{fill:var(--accent);stroke:var(--surface);stroke-width:1.4;cursor:pointer}
+  .r-dot.over{fill:var(--warn)}
+  .r-dot.dim{fill:var(--line);stroke:var(--surface)}
+  .r-dot.hot{stroke:var(--ink);stroke-width:2}
+  .r-home{fill:var(--crit)}
+  .r-home-ring{fill:none;stroke:var(--crit);stroke-width:1.2;opacity:.5}
+
+  /* ---------- filters ---------- */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 18px;display:flex;flex-direction:column;gap:16px}
+  .fgroup{display:flex;flex-direction:column;gap:7px}
+  .frow{display:flex;justify-content:space-between;align-items:baseline}
+  .frow .fv{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent);height:20px;margin:0}
+  .checks{display:flex;flex-direction:column;gap:9px;padding-top:2px;border-top:1px solid var(--line-soft)}
+  .chk{display:flex;gap:9px;align-items:flex-start;font-size:14px;color:var(--ink-2);cursor:pointer;line-height:1.35}
+  .chk input{accent-color:var(--accent);margin:2px 0 0;flex:none;width:15px;height:15px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{
+    flex:1;appearance:none;border:0;background:var(--surface);color:var(--muted);
+    font:inherit;font-size:13px;padding:6px 4px;cursor:pointer;
+  }
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- listings ---------- */
+  .results{display:flex;flex-direction:column;gap:0}
+  .rhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .rcount{font-size:13.5px;color:var(--muted)}
+
+  .card{
+    display:grid;grid-template-columns:112px minmax(0,1fr);gap:20px;
+    padding:18px 0;border-top:1px solid var(--line);
+  }
+  .card:last-child{border-bottom:1px solid var(--line)}
+  .card.flag{background:linear-gradient(90deg,var(--warn-soft),transparent 62%);padding-left:12px;margin-left:-12px}
+  .price{display:flex;flex-direction:column;gap:2px;padding-top:2px}
+  .price .p{font-family:"Archivo",system-ui,sans-serif;font-variation-settings:"wdth" 92;font-weight:700;font-size:24px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .price .pn{font-size:11.5px;color:var(--muted);line-height:1.3}
+  .body{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .ttl{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .addr{font-size:14px;color:var(--muted)}
+  .dist{
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:500;
+    background:var(--surface-2);color:var(--ink-2);border-radius:5px;padding:2px 7px;white-space:nowrap;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    font-size:12px;line-height:1.5;padding:2px 8px;border-radius:5px;
+    background:var(--surface-2);color:var(--ink-2);border:1px solid transparent;
+  }
+  .chip.on{background:var(--accent-soft);color:var(--accent)}
+  .chip.warnc{background:var(--warn-soft);color:var(--warn)}
+  .chip.critc{background:var(--crit-soft);color:var(--crit)}
+  .meta{font-size:13.5px;color:var(--ink-2)}
+  .meta b{font-weight:600}
+  .links{display:flex;flex-wrap:wrap;gap:14px;font-size:13.5px;align-items:center}
+  .links a{text-decoration:none;border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);padding-bottom:1px}
+  .links a:hover{border-bottom-color:var(--accent)}
+  .src{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .empty{padding:40px 0;color:var(--muted);font-size:15px;border-top:1px solid var(--line)}
+
+  @media (max-width:560px){
+    .card{grid-template-columns:1fr;gap:10px}
+    .price{flex-direction:row;align-items:baseline;gap:10px}
+    .price .pn{padding-top:2px}
+  }
+
+  /* ---------- lower sections ---------- */
+  .section{margin-top:56px}
+  .section > h2{margin-bottom:6px}
+  .section > .lede{margin-bottom:18px}
+  .portals{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .portal{
+    display:flex;flex-direction:column;gap:4px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 15px;text-decoration:none;color:var(--ink);
+  }
+  .portal:hover{border-color:var(--accent)}
+  .portal .pt{font-weight:600;font-size:14.5px}
+  .portal .pd{font-size:13px;color:var(--muted);line-height:1.4}
+
+  .ask{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0 34px}
+  .ask ul{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:7px}
+  .ask li{font-size:14.5px;color:var(--ink-2)}
+  .ask li b{color:var(--ink);font-weight:600}
+
+  .tmpl{
+    background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:0 var(--r) var(--r) 0;padding:15px 17px;font-size:14.5px;color:var(--ink-2);
+    max-width:64ch;
+  }
+  .tmpl p+p{margin-top:10px}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);max-width:70ch;display:flex;flex-direction:column;gap:8px}
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <span class="pin">
+      <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M6 0a5 5 0 0 0-5 5c0 3.6 4.3 8.5 4.5 8.7a.7.7 0 0 0 1 0C6.7 13.5 11 8.6 11 5a5 5 0 0 0-5-5Zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/></svg>
+      Av. Camino Real 1053, San Isidro
+    </span>
+    <h1>Cuartos a 2 km de la oficina</h1>
+    <p class="lede">Habitaciones individuales dentro del radio de 2 km desde Vinatea &amp; Toyama, filtradas por lo que pediste: amoblada, con cocina, lavandería y baño, hasta S/&nbsp;1,000 al mes. Las distancias son en línea recta desde la puerta de Camino Real 1053.</p>
+    <div class="stats">
+      <div class="stat"><span class="v num" id="s-count">—</span><span class="k">avisos en el filtro</span></div>
+      <div class="stat"><span class="v num" id="s-med">—</span><span class="k">precio mediano</span></div>
+      <div class="stat"><span class="v num" id="s-near">—</span><span class="k">el más cercano</span></div>
+      <div class="stat"><span class="v num" id="s-cheap">—</span><span class="k">el más barato</span></div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <aside class="rail">
+      <div class="radar">
+        <svg id="radar" viewBox="0 0 280 280" role="img" aria-label="Mapa radial de los avisos alrededor de Av. Camino Real 1053"></svg>
+        <div class="radar-foot"><span>Anillos cada 500 m</span><span id="radar-hint">2 km = borde verde</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="fgroup">
+          <div class="frow"><label class="eyebrow" for="f-price">Precio máximo</label><span class="fv" id="v-price">S/ 1,000</span></div>
+          <input type="range" id="f-price" min="600" max="1400" step="50" value="1000">
+        </div>
+        <div class="fgroup">
+          <div class="frow"><label class="eyebrow" for="f-dist">Distancia máxima</label><span class="fv" id="v-dist">2.0 km</span></div>
+          <input type="range" id="f-dist" min="0.5" max="2.5" step="0.1" value="2">
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="f-laundry"> Solo con lavandería confirmada en el aviso</label>
+          <label class="chk"><input type="checkbox" id="f-bath"> Solo con baño propio</label>
+          <label class="chk"><input type="checkbox" id="f-women"> Ocultar los avisos que son solo para mujeres</label>
+        </div>
+        <div class="fgroup">
+          <span class="eyebrow">Ordenar por</span>
+          <div class="seg" role="group" aria-label="Ordenar resultados">
+            <button type="button" id="sort-dist" aria-pressed="true">Cercanía</button>
+            <button type="button" id="sort-price" aria-pressed="false">Precio</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="rhead">
+        <h2>Avisos</h2>
+        <span class="rcount" id="rcount"></span>
+      </div>
+      <div class="results" id="results"></div>
+    </main>
+  </div>
+
+  <section class="section">
+    <h2>Seguir buscando por tu cuenta</h2>
+    <p class="lede">Los avisos de habitación rotan rápido (muchos duran menos de una semana). Estos enlaces ya llevan el filtro de distrito puesto; conviene revisarlos dos veces por semana.</p>
+    <div class="portals">
+      <a class="portal" href="https://www.roomver.com/distrito/san-isidro/" target="_blank" rel="noopener">
+        <span class="pt">Roommates Lima · San Isidro</span>
+        <span class="pd">45 avisos activos. El portal más útil para modo roomie; muestra dirección, reglas de casa y contacto.</span>
+      </a>
+      <a class="portal" href="https://www.roomver.com/distrito/lince/" target="_blank" rel="noopener">
+        <span class="pt">Roommates Lima · Lince</span>
+        <span class="pd">32 avisos. Lince entra casi entero en el radio de 2 km y es donde bajan los precios.</span>
+      </a>
+      <a class="portal" href="https://urbania.pe/buscar/alquiler-de-habitaciones-en-san-isidro--lima--lima?sort=low_price" target="_blank" rel="noopener">
+        <span class="pt">Urbania · habitaciones San Isidro</span>
+        <span class="pd">Ordenado de menor a mayor precio. Aquí salieron las habitaciones de Juan de Arona y Las Camelias.</span>
+      </a>
+      <a class="portal" href="https://www.adondevivir.com/habitacion-en-alquiler-en-san-isidro.html" target="_blank" rel="noopener">
+        <span class="pt">Adondevivir · habitaciones San Isidro</span>
+        <span class="pd">Menos volumen, pero publica avisos que no aparecen en Urbania.</span>
+      </a>
+      <a class="portal" href="https://listado.mercadolibre.com.pe/alquiler-habitaciones-amobladas-san-isidro" target="_blank" rel="noopener">
+        <span class="pt">Mercado Libre · habitaciones amobladas</span>
+        <span class="pd">Anunciantes particulares, casi siempre con número directo y sin comisión.</span>
+      </a>
+      <a class="portal" href="https://casas.trovit.com.pe/alquiler-habitaci%C3%B3n-ba%C3%B1o-san-isidro" target="_blank" rel="noopener">
+        <span class="pt">Trovit · habitación con baño</span>
+        <span class="pd">Agregador: repite avisos de otros portales, pero sirve para no perderse ninguno.</span>
+      </a>
+    </div>
+    <p class="lede" style="margin-top:16px">Fuera de los portales, los grupos de Facebook <i>Alquiler de habitaciones Lima</i> y <i>Roomies Lima</i> mueven más avisos por debajo de S/&nbsp;900 que cualquier web, y el aviso pegado en la ventana de una casa de San Isidro sigue existiendo: la zona entre Las Camelias, Las Begonias y Juan de Arona vale una caminata de media hora.</p>
+  </section>
+
+  <section class="section">
+    <h2>Qué confirmar antes de dar el adelanto</h2>
+    <div class="ask">
+      <ul>
+        <li><b>Servicios incluidos o aparte.</b> Varios avisos de S/&nbsp;1,000 suman S/&nbsp;100 a S/&nbsp;190 de mantenimiento y el total se te va del presupuesto.</li>
+        <li><b>Garantía 1×1 o 2×1.</b> El 2×1 (dos meses de adelanto más garantía) significa poner tres sueldos de golpe.</li>
+        <li><b>Mínimo de permanencia.</b> Casi todos piden 6 meses; algunos, 12.</li>
+        <li><b>Lavandería.</b> Pregunta si es lavadora de libre uso, por turnos o servicio una vez por semana. No es lo mismo.</li>
+      </ul>
+      <ul>
+        <li><b>Baño.</b> "Baño incorporado" y "baño compartido entre dos" se anuncian con la misma foto.</li>
+        <li><b>Cocina.</b> Kitchenette con hornilla y microondas, o cocina completa con refrigeradora propia.</li>
+        <li><b>Contrato y recibo.</b> Pide contrato simple firmado y recibo mensual, aunque sea informal.</li>
+        <li><b>Reglas de casa.</b> Visitas, horario de silencio, mascotas. Muchas casas de San Isidro prohíben visitas por completo.</li>
+      </ul>
+    </div>
+    <div class="tmpl" style="margin-top:20px">
+      <p><b>Mensaje para mandar por WhatsApp</b></p>
+      <p>Hola, vi su aviso de la habitación en [dirección]. ¿Sigue disponible? Trabajo en San Isidro y busco desde [mes]. Quisiera confirmar tres cosas: si el precio de S/&nbsp;[monto] incluye todos los servicios, cómo funciona la lavandería y con cuántas personas se comparte el baño. Si está libre, ¿podría ir a verla esta semana? Gracias.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Datos recogidos el 8 de septiembre de 2026 de Roommates Lima (roomver.com), Urbania y Adondevivir. Los avisos de Urbania y Adondevivir se leyeron desde resultados de búsqueda porque esos portales bloquean el acceso automatizado, así que precio y disponibilidad hay que confirmarlos en la página del aviso.</p>
+    <p>Las distancias son en línea recta desde Av. Camino Real 1053, calculadas sobre la dirección publicada. Cuando el aviso solo indica la avenida y no la cuadra, el punto está a mitad de la avenida y puede moverse dos o tres cuadras. Caminando, súmale entre 20 % y 40 % a la cifra.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // dx = km al este del punto de referencia, dy = km al norte.
+  var DATA = [
+    { id:"javierprado", precio:790, nota:"servicios incluidos",
+      titulo:"Habitación con baño propio en edificio con áreas comunes",
+      dir:"Av. Javier Prado Oeste, piso 8 · San Isidro",
+      dx:-0.25, dy:0.41,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:true, soloMujeres:true,
+      incluye:"Luz, agua, internet y mantenimiento. Piscina, gimnasio, sauna y seguridad 24/7.",
+      cond:"Mínimo 6 meses · 1 mes de adelanto + 1 de garantía · sin visitas, sin mascotas",
+      contacto:"WhatsApp 943 240 944",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/alquiler-habitacion-c-bano-san-isidro-s-mujeres/" },
+
+    { id:"camelias", precio:650, nota:"a 1 cuadra de Juan de Arona",
+      titulo:"Habitación amoblada en casa, áreas comunes compartidas",
+      dir:"Calle Las Camelias 789 · San Isidro",
+      dx:0.75, dy:0.28,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:true,
+      incluye:"Cocina, sala y zona de lavandería compartidas. Segundo piso.",
+      cond:"Para una sola persona",
+      contacto:"WhatsApp 960 159 208 (Sra. Meche)",
+      fuente:"Urbania",
+      url:"https://urbania.pe/buscar/alquiler-de-habitaciones-en-san-isidro--lima--lima?sort=low_price" },
+
+    { id:"arona", precio:760, nota:"también S/ 800 · 860 · 900 · 980 según el cuarto",
+      titulo:"Residencia con habitaciones de 12 y 14 m², todo incluido",
+      dir:"Av. Juan de Arona · San Isidro",
+      dx:0.95, dy:0.43,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:false,
+      incluye:"Luz, agua, wifi, cable y gas. Baño completo compartido con agua caliente 24 h, cocina equipada, lavandería con lavadora y tendal.",
+      cond:"1 mes de garantía · precio negociable · 1 persona por habitación",
+      contacto:"Por el portal",
+      fuente:"Urbania",
+      url:"https://urbania.pe/buscar/alquiler-de-habitaciones-en-san-isidro--lima--lima?sort=low_price" },
+
+    { id:"arequipa2655", precio:730, nota:"modo roommate",
+      titulo:"Habitación en departamento compartido",
+      dir:"Av. Arequipa 2655 · San Isidro",
+      dx:0.46, dy:0.52,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Departamento compartido con áreas comunes.",
+      cond:"Publicado por Rosario Díaz",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/distrito/san-isidro/" },
+
+    { id:"angulo", precio:800, nota:"servicios básicos incluidos",
+      titulo:"Habitación amoblada cerca de la Clínica Ricardo Palma",
+      dir:"Calle Dr. Ricardo J. Angulo, Santa Ana · San Isidro",
+      dx:1.46, dy:0.76,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:true,
+      incluye:"Servicios básicos y wifi de 850 Gb. Baño compartido, limpieza de áreas comunes organizada entre los inquilinos.",
+      cond:"De 6 a 12 meses · 1×1 · sin visitas, sin mascotas",
+      contacto:"Por el portal (BuendiaLeon)",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/san-isidro-habitaciones-solo-para-senoritas/" },
+
+    { id:"campo", precio:900, nota:"límite con Magdalena",
+      titulo:"Habitación amoblada en depa de 3 cuartos y 3 baños",
+      dir:"Av. Alberto del Campo, Campo de Polo · San Isidro",
+      dx:-0.96, dy:0.69,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Clóset y escritorio propios, wifi y servicios básicos. Cocina equipada y área social compartidas.",
+      cond:"De 6 a 9 meses · 2×1 · sin mascotas, sin fiestas",
+      contacto:"Por el portal (GianfrancoMestas)",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/alquilo-habitaciones-2/" },
+
+    { id:"petit", precio:950, nota:"casa familiar",
+      titulo:"Habitación en casa familiar para quien estudie o trabaje",
+      dir:"Av. Petit Thouars · San Isidro",
+      dx:0.89, dy:0.63,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:true,
+      incluye:"Casa familiar con áreas comunes.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/san-isidro-se-alquila-2-habitaciones-en-casa-familiar-para-senoritas-que-estudien-y-o-trabajen/" },
+
+    { id:"si970", precio:970, nota:"dirección no publicada",
+      titulo:"Habitación amoblada con ventana exterior en residencia",
+      dir:"San Isidro · el aviso no indica la cuadra",
+      dx:null, dy:null,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:false,
+      incluye:"Internet, luz, agua, agua caliente y gas. Baño compartido, cocina equipada compartida y zona de lavandería.",
+      cond:"1 persona por habitación · sin parejas, sin mascotas",
+      contacto:"Por el portal",
+      fuente:"Adondevivir",
+      url:"https://www.adondevivir.com/habitacion-en-alquiler-en-san-isidro.html" },
+
+    { id:"coliving", precio:1000, nota:"todo incluido",
+      titulo:"Habitación en co-living con kitchenette y lavandería",
+      dir:"Av. Arequipa, Chacarilla · San Isidro",
+      dx:0.51, dy:0.69,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:false,
+      incluye:"Wifi, luz, agua caliente, gas y limpieza semanal de áreas comunes. Cama de plaza y media, clóset amplio y escritorio. Baño compartido con dos personas, kitchenette equipada y lavandería una vez por semana.",
+      cond:"Mínimo 6 meses · 1 de garantía + 1 de adelanto · piden boletas de pago",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/habitacion-amoblada-acceso-compartido-a-kitchenette-y-lavanderia/" },
+
+    { id:"miller", precio:1000, nota:"límite con San Isidro",
+      titulo:"Habitación premium en Lince, a un paso del centro financiero",
+      dir:"Jr. Mariscal William Miller · Lince",
+      dx:0.51, dy:1.07,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/%f0%9f%93%8dhabitacion-premium-en-lince-limite-con-san-isidro-%f0%9f%8f%a1/" },
+
+    { id:"soledad", precio:1000, nota:"modo roommate",
+      titulo:"Habitación en departamento compartido",
+      dir:"Jr. Soledad 440 · Lince",
+      dx:0.46, dy:1.24,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/habitacion-modo-roommate-lince/" },
+
+    { id:"capac", precio:880, nota:"ojo: un aviso similar suma S/ 190 de mantenimiento",
+      titulo:"Habitación en Lince, zona Risso",
+      dir:"Jr. Cápac Yupanqui, Risso · Lince",
+      dx:0.51, dy:1.52,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/se-alquila-habitacipon-en-lince/" },
+
+    { id:"canevaro", precio:750, nota:"cerca de la UPC y la UP",
+      titulo:"Habitación en Lince",
+      dir:"Av. Canevaro 1544 · Lince",
+      dx:0.95, dy:1.57,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/lince-habitacion-cerca-a-upc-up/" },
+
+    { id:"pezet", precio:700, nota:"el más barato del radio",
+      titulo:"Habitación disponible en departamento compartido",
+      dir:"Jr. José Pezet y Monel, Risso · Lince",
+      dx:0.73, dy:1.65,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/room-disponible-en-depa-en-lince-%f0%9f%8f%a1/" },
+
+    { id:"alayza", precio:1000, nota:"estilo roommate",
+      titulo:"Habitación en Lince",
+      dir:"Jr. Carlos Alayza y Roel 1914 · Lince",
+      dx:1.16, dy:1.46,
+      amoblada:true, cocina:true, lavanderia:false, banoPropio:false, soloMujeres:false,
+      incluye:"Consultar servicios en el aviso.",
+      cond:"Consultar en el aviso",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/%f0%9f%8f%a2-alquiler-de-habitacion-estilo-roommate-jr-carlos-alayza-y-roel-1914-dpto-nro/" },
+
+    { id:"lilas", precio:1050, nota:"solo hombres",
+      titulo:"Cuarto en depa de 130 m² con terraza, junto al parque Santos Dumont",
+      dir:"Calle Las Lilas · Lince",
+      dx:0.84, dy:1.13,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:false,
+      incluye:"Internet, cable, mantenimiento, luz y agua. Refrigeradora, cocina, microondas, lavadora e impresora compartidas.",
+      cond:"Mínimo 5 meses · 1×1 · sin fiestas, silencio después de las 10 p. m.",
+      contacto:"Por el portal",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/alquiler-habitacion-en-lince-limite-con-centro-financiero-san-isidro/" },
+
+    { id:"villarreal", precio:1100, nota:"internet incluido",
+      titulo:"Habitación amoblada con baño incorporado y entrada independiente",
+      dir:"Calle Federico Villarreal · San Isidro",
+      dx:0.84, dy:0.30,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:true, soloMujeres:false,
+      incluye:"Internet, agua caliente y servicios. Cama, escritorio, clóset y TV. Lavandería en el mismo piso.",
+      cond:"Tercer piso de casa, ingreso totalmente independiente",
+      contacto:"Por el portal",
+      fuente:"Adondevivir",
+      url:"https://www.adondevivir.com/habitacion-en-alquiler-en-san-isidro.html" },
+
+    { id:"magdalena", precio:1300, nota:"el cuerpo del aviso dice S/ 1,000 con todo incluido",
+      titulo:"Habitación amoblada en depa con piscina y gimnasio",
+      dir:"Magdalena del Mar, límite con San Isidro · cerca de Real Plaza Salaverry",
+      dx:-1.39, dy:0.91,
+      amoblada:true, cocina:true, lavanderia:true, banoPropio:false, soloMujeres:true,
+      incluye:"Agua, luz, internet, gas y mantenimiento. Clóset empotrado, cama, velador y escritorio. Cocina y lavandería compartidas, piscina y gimnasio.",
+      cond:"De 6 a 12 meses · 1 adelanto + 1 garantía · sin mascotas, sin niños",
+      contacto:"Ángela Cano · 941 452 190",
+      fuente:"Roommates Lima",
+      url:"https://www.roomver.com/aquilerhabitaciones/alquiler-de-habitacion-en-magdalena-limite-con-san-isidro/" }
+  ];
+
+  DATA.forEach(function(d){
+    d.dist = (d.dx === null) ? null : Math.round(Math.sqrt(d.dx*d.dx + d.dy*d.dy)*10)/10;
+  });
+
+  var els = {
+    price: document.getElementById("f-price"),
+    dist: document.getElementById("f-dist"),
+    laundry: document.getElementById("f-laundry"),
+    bath: document.getElementById("f-bath"),
+    women: document.getElementById("f-women"),
+    vPrice: document.getElementById("v-price"),
+    vDist: document.getElementById("v-dist"),
+    results: document.getElementById("results"),
+    rcount: document.getElementById("rcount"),
+    radar: document.getElementById("radar"),
+    sortDist: document.getElementById("sort-dist"),
+    sortPrice: document.getElementById("sort-price")
+  };
+  var sortBy = "dist";
+  var NS = "http://www.w3.org/2000/svg";
+
+  function soles(n){ return "S/ " + n.toLocaleString("es-PE"); }
+
+  function current(){
+    var maxP = +els.price.value, maxD = +els.dist.value;
+    return DATA.filter(function(d){
+      if (d.precio > maxP) return false;
+      if (d.dist !== null && d.dist > maxD) return false;
+      if (els.laundry.checked && !d.lavanderia) return false;
+      if (els.bath.checked && !d.banoPropio) return false;
+      if (els.women.checked && d.soloMujeres) return false;
+      return true;
+    }).sort(function(a,b){
+      if (sortBy === "price") return a.precio - b.precio || (a.dist||9) - (b.dist||9);
+      return (a.dist === null ? 99 : a.dist) - (b.dist === null ? 99 : b.dist) || a.precio - b.precio;
+    });
+  }
+
+  function el(tag, cls, txt){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt !== undefined) n.textContent = txt;
+    return n;
+  }
+
+  function chip(text, kind){
+    var c = el("span", "chip" + (kind ? " " + kind : ""), text);
+    return c;
+  }
+
+  function renderList(rows){
+    els.results.textContent = "";
+    if (!rows.length){
+      els.results.appendChild(el("div","empty","Ningún aviso cumple ese filtro. Sube el tope de precio o el radio, o desmarca alguna condición."));
+      return;
+    }
+    rows.forEach(function(d){
+      var card = el("article","card" + (d.precio > 1000 ? " flag" : ""));
+      card.dataset.id = d.id;
+
+      var price = el("div","price");
+      price.appendChild(el("span","p num", soles(d.precio)));
+      if (d.nota) price.appendChild(el("span","pn", d.nota));
+      card.appendChild(price);
+
+      var body = el("div","body");
+
+      var ttl = el("div","ttl");
+      ttl.appendChild(el("h3", null, d.titulo));
+      ttl.appendChild(el("span","dist", d.dist === null ? "distancia s/d" : d.dist.toFixed(1) + " km"));
+      body.appendChild(ttl);
+
+      body.appendChild(el("p","addr", d.dir));
+
+      var chips = el("div","chips");
+      chips.appendChild(chip("Amoblada", d.amoblada ? "on" : ""));
+      chips.appendChild(chip("Cocina", d.cocina ? "on" : ""));
+      chips.appendChild(chip(d.lavanderia ? "Lavandería" : "Lavandería sin confirmar", d.lavanderia ? "on" : "warnc"));
+      chips.appendChild(chip(d.banoPropio ? "Baño propio" : "Baño compartido", d.banoPropio ? "on" : ""));
+      if (d.soloMujeres) chips.appendChild(chip("Solo mujeres", "critc"));
+      if (d.precio > 1000) chips.appendChild(chip("Sobre el tope de S/ 1,000", "warnc"));
+      body.appendChild(chips);
+
+      body.appendChild(el("p","meta", d.incluye));
+      var cond = el("p","meta");
+      cond.appendChild(el("b", null, "Condiciones. "));
+      cond.appendChild(document.createTextNode(d.cond + " · " + d.contacto));
+      body.appendChild(cond);
+
+      var links = el("div","links");
+      var a = el("a", null, "Ver el aviso");
+      a.href = d.url; a.target = "_blank"; a.rel = "noopener";
+      links.appendChild(a);
+      links.appendChild(el("span","src", d.fuente));
+      body.appendChild(links);
+
+      card.appendChild(body);
+      els.results.appendChild(card);
+    });
+  }
+
+  function renderRadar(rows){
+    var svg = els.radar;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var cx = 140, cy = 148, scale = 52; // 52 px por km -> 2.5 km entra en el lienzo
+    var visible = {};
+    rows.forEach(function(r){ visible[r.id] = true; });
+
+    function add(tag, attrs, cls){
+      var n = document.createElementNS(NS, tag);
+      for (var k in attrs) n.setAttribute(k, attrs[k]);
+      if (cls) n.setAttribute("class", cls);
+      svg.appendChild(n);
+      return n;
+    }
+
+    add("line", {x1:cx-125, y1:cy, x2:cx+125, y2:cy}, "r-cross");
+    add("line", {x1:cx, y1:cy-125, x2:cx, y2:cy+125}, "r-cross");
+
+    [0.5, 1, 1.5].forEach(function(km){
+      add("circle", {cx:cx, cy:cy, r:km*scale}, "r-ring dashed");
+    });
+    add("circle", {cx:cx, cy:cy, r:2*scale}, "r-ring edge");
+
+    [[1,"1 km"],[2,"2 km"]].forEach(function(p){
+      var t = add("text", {x:cx + 5, y:cy - p[0]*scale - 4}, "r-label");
+      t.textContent = p[1];
+    });
+
+    var n = add("text", {x:cx, y:16, "text-anchor":"middle"}, "r-label");
+    n.textContent = "N";
+
+    DATA.forEach(function(d){
+      if (d.dx === null) return;
+      var x = cx + d.dx*scale, y = cy - d.dy*scale;
+      var cls = "r-dot";
+      if (!visible[d.id]) cls += " dim";
+      else if (d.precio > 1000) cls += " over";
+      var c = add("circle", {cx:x, cy:y, r: visible[d.id] ? 5 : 3.5}, cls);
+      var title = document.createElementNS(NS, "title");
+      title.textContent = d.dir + " — " + soles(d.precio) + " — " + d.dist.toFixed(1) + " km";
+      c.appendChild(title);
+      if (visible[d.id]){
+        c.addEventListener("click", function(){
+          var card = els.results.querySelector('[data-id="' + d.id + '"]');
+          if (card) card.scrollIntoView({behavior:"smooth", block:"center"});
+        });
+      }
+    });
+
+    add("circle", {cx:cx, cy:cy, r:11}, "r-home-ring");
+    add("circle", {cx:cx, cy:cy, r:4.5}, "r-home");
+    var h = add("text", {x:cx, y:cy+24, "text-anchor":"middle"}, "r-label");
+    h.textContent = "Camino Real 1053";
+  }
+
+  function renderStats(rows){
+    var withDist = rows.filter(function(r){ return r.dist !== null; });
+    document.getElementById("s-count").textContent = rows.length;
+    if (!rows.length){
+      ["s-med","s-near","s-cheap"].forEach(function(id){ document.getElementById(id).textContent = "—"; });
+      return;
+    }
+    var prices = rows.map(function(r){ return r.precio; }).sort(function(a,b){ return a-b; });
+    var mid = prices.length % 2 ? prices[(prices.length-1)/2]
+            : Math.round((prices[prices.length/2 - 1] + prices[prices.length/2]) / 2);
+    document.getElementById("s-med").textContent = soles(mid);
+    document.getElementById("s-near").textContent = withDist.length
+      ? Math.min.apply(null, withDist.map(function(r){ return r.dist; })).toFixed(1) + " km"
+      : "—";
+    document.getElementById("s-cheap").textContent = soles(prices[0]);
+  }
+
+  function refresh(){
+    els.vPrice.textContent = soles(+els.price.value);
+    els.vDist.textContent = (+els.dist.value).toFixed(1) + " km";
+    var rows = current();
+    renderList(rows);
+    renderRadar(rows);
+    renderStats(rows);
+    els.rcount.textContent = rows.length + " de " + DATA.length + " avisos · ordenados por " +
+      (sortBy === "price" ? "precio" : "cercanía");
+  }
+
+  ["price","dist"].forEach(function(k){ els[k].addEventListener("input", refresh); });
+  ["laundry","bath","women"].forEach(function(k){ els[k].addEventListener("change", refresh); });
+  els.sortDist.addEventListener("click", function(){
+    sortBy = "dist";
+    els.sortDist.setAttribute("aria-pressed","true");
+    els.sortPrice.setAttribute("aria-pressed","false");
+    refresh();
+  });
+  els.sortPrice.addEventListener("click", function(){
+    sortBy = "price";
+    els.sortPrice.setAttribute("aria-pressed","true");
+    els.sortDist.setAttribute("aria-pressed","false");
+    refresh();
+  });
+
+  refresh();
+})();
+</script>

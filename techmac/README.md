@@ -193,6 +193,23 @@ En `claude_desktop_config.json`:
 }
 ```
 
+### Desde el iPhone
+
+TechMaC sigue corriendo en tu computadora, con tus datos en `~/.techmac`. El iPhone solo la controla.
+
+1. **Hablar con Claude:** en tu Mac, dentro de la carpeta del repo, ejecuta `claude remote-control`
+   (o abre el repo en Claude Desktop con Remote Control activado). La sesión aparece en la app de
+   Claude del iPhone, en la sección Code, con el conector `techmac` y su skill.
+2. **Aprobar órdenes:** Claude no puede hacerlo, a propósito. Activa *Inicio de sesión remoto (SSH)*
+   en tu Mac (Ajustes del Sistema → General → Compartir) e instala una app SSH en el iPhone, como
+   Termius o Blink Shell. Conéctate a tu Mac y ejecuta `python3 techmac/tm.py approve <id>`. SSH abre
+   una terminal real, así que la aprobación con frase exacta funciona igual que en tu computadora.
+   Fuera de tu red de casa, usa una VPN como Tailscale. Nunca abras el puerto SSH a internet.
+3. **Emergencias:** `python3 techmac/tm.py kill on` desde la misma app SSH.
+
+No uses Claude Code en la nube para el libro de órdenes: el contenedor se borra al cerrar la sesión y
+`~/.techmac` se perdería. En la nube solo sirve para evaluar con datos recién descargados.
+
 ## Del backtest al dinero real: el camino recomendado
 
 1. `evaluate` con datos suficientes: años de velas diarias o meses de intradía acumulados. 60 días de

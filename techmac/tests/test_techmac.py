@@ -476,6 +476,14 @@ class TestGoal(unittest.TestCase):
         self.assertGreaterEqual(three["prob_ruin_pct"], one["prob_ruin_pct"])
         self.assertGreater(three["prob_drop_50pct"], one["prob_drop_50pct"])
 
+    def test_contributions_only(self):
+        from techmac import goal as G
+        r = G.simulate([0.003] * 120, 0, 250, 1e9, 10, [1], sims=200)
+        x = r["results"][0]
+        self.assertEqual(x["prob_ruin_pct"], 0.0)
+        self.assertGreater(x["final_median"], 250 * 120)          # aportes + rendimiento
+        self.assertLess(x["final_median"], 250 * 120 * 1.3)
+
     def test_needs_history(self):
         from techmac import goal as G
         with self.assertRaises(V.ValidationError):

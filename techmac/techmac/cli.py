@@ -107,13 +107,16 @@ def _print_goal(r):
     print("Capital $%s + $%s/mes, meta $%s, horizonte %d años\n" % (
         format(r["capital"], ",.0f"), format(r["monthly_contribution"], ",.0f"), format(r["target"], ",.0f"),
         r["horizon_years"]))
-    print("%-7s %12s %10s %10s %10s %10s %14s" % ("Apalanc.", "Años (med.)", "P<=10a", "P<=20a", "P quiebra",
-                                                 "P caída50", "Final mediano"))
+    print("%-7s %12s %8s %8s %9s %9s %11s %11s %12s %12s" % (
+        "Apalanc.", "Años (med.)", "P<=10a", "P<=20a", "P quiebra", "P caída50", ">10% bajo", "Termina en",
+        "Final p10", "Final med."))
+    print("%-7s %12s %8s %8s %9s %9s %11s %11s %12s %12s" % ("", "", "", "", "", "", "lo aportado", "pérdida", "", ""))
     for x in r["results"]:
-        print("%-7s %12s %9s%% %9s%% %9s%% %9s%% %14s" % (
+        print("%-7s %12s %7s%% %7s%% %8s%% %8s%% %10s%% %10s%% %12s %12s" % (
             "%sx" % x["leverage"], x["median_years_to_target"] if x["median_years_to_target"] is not None else "nunca*",
             x["prob_target_10y_pct"], x["prob_target_20y_pct"], x["prob_ruin_pct"], x["prob_drop_50pct"],
-            format(x["final_median"], ",.0f")))
+            x["prob_ever_10pct_below_contributed_pct"], x["prob_end_below_contributed_pct"],
+            format(x["final_p10"], ",.0f"), format(x["final_median"], ",.0f")))
     print("\n* menos de la mitad de las simulaciones llega a la meta en el horizonte.")
     print(r["warning"])
 

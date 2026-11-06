@@ -25,26 +25,28 @@ def simulate(monthly, capital, monthly_contribution, target, max_years, leverage
     out = []
     for lev in levs:
         rng = random.Random(seed)
-        hit_months, ruined, deep_dd, finals = [], 0, 0, []
+        hit_months, ruined, deep_dd, finals, underwater, end_loss = [], 0, 0, [], 0, 0
         for _ in range(sims):
-            eq, peak, invested, reached, dead, dd50 = capital, capital, capital, None, False, False
+            eq, peak, invested, reached, dead, dd50, below = capital, capital, capital, None, False, False, False
             m = 0
             while m < months:
                 s = rng.randrange(n)
                 for j in range(block):
                     if m >= months:
                         break
+                    eq += contrib                      # el aporte entra al inicio del mes
+                    invested += contrib
+                    peak = max(peak, eq)
                     r = monthly[(s + j) % n] * lev - max(0.0, lev - 1) * borrow_rate / 12
                     eq = eq * (1 + r) if r > -1 else 0.0
-                    if eq <= max(1.0, 0.02 * invested):
+                    if eq <= 0.02 * invested:
                         dead = True
                         eq = 0.0
                         break
-                    peak = max(peak, eq)
                     if eq < 0.5 * peak:
                         dd50 = True
-                    eq += contrib
-                    invested += contrib
+                    if eq < 0.9 * invested:
+                        below = True
                     peak = max(peak, eq)
                     m += 1
                     if reached is None and eq >= target:
@@ -55,6 +57,10 @@ def simulate(monthly, capital, monthly_contribution, target, max_years, leverage
                 ruined += 1
             if dd50:
                 deep_dd += 1
+            if below:
+                underwater += 1
+            if eq < invested:
+                end_loss += 1
             if reached is not None:
                 hit_months.append(reached)
             finals.append(eq)
@@ -72,6 +78,8 @@ def simulate(monthly, capital, monthly_contribution, target, max_years, leverage
             "prob_target_ever_pct": round(100.0 * len(hit_months) / sims, 1),
             "prob_ruin_pct": round(100.0 * ruined / sims, 1),
             "prob_drop_50pct": round(100.0 * deep_dd / sims, 1),
+            "prob_ever_10pct_below_contributed_pct": round(100.0 * underwater / sims, 1),
+            "prob_end_below_contributed_pct": round(100.0 * end_loss / sims, 1),
             "final_p10": round(finals[int(0.10 * sims)]), "final_median": round(finals[sims // 2]),
             "final_p90": round(finals[int(0.90 * sims)]),
         })

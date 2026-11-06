@@ -42,7 +42,9 @@ INSTRUCTIONS = (
 
 SYM = {"type": "string", "description": "Ticker, p. ej. SPY, AAPL, BRK-B"}
 IV = {"type": "string", "enum": list(V.INTERVALS), "description": "Intervalo de velas"}
-STRAT = {"type": "string", "enum": ["orb", "sma_cross", "donchian"]}
+STRAT = {"type": "string", "enum": ["orb", "sma_cross", "donchian", "rsi2", "ibs", "trend_filter", "tsmom"]}
+ALLOC = {"type": "string", "enum": ["equal_weight", "risk_parity", "dual_momentum", "relative_momentum", "trend_parity"]}
+SYMS = {"type": "array", "items": SYM, "minItems": 1, "maxItems": 30}
 DATE = {"type": "string", "description": "AAAA-MM-DD"}
 
 TOOLS = [
@@ -66,6 +68,35 @@ TOOLS = [
                                     "grid": {"type": "object", "description": "{parámetro: [valores]}"},
                                     "train_days": {"type": "integer"}, "test_days": {"type": "integer"},
                                     "start": DATE, "end": DATE}}},
+    {"name": "list_allocations",
+     "description": "Estrategias de portafolio multi-activo (momentum dual, rotación, paridad de riesgo, tendencia).",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "evaluate_portfolio",
+     "description": "Evalúa un portafolio global con rebalanceo mensual: walk-forward, costos x2, Deflated Sharpe y "
+                    "comparación con comprar y mantener el benchmark y con mismo peso. Devuelve veredicto y los "
+                    "pesos que tocaría tener hoy.",
+     "inputSchema": {"type": "object", "required": ["symbols", "strategy"], "additionalProperties": False,
+                     "properties": {"symbols": SYMS, "strategy": ALLOC,
+                                    "safe": {"type": "string", "description": "activo seguro, debe estar en symbols"},
+                                    "benchmark": {"type": "string"}, "grid": {"type": "object"},
+                                    "train_years": {"type": "integer"}, "test_years": {"type": "integer"},
+                                    "target_vol": {"type": "number", "description": "% anual, 0 = apagado"},
+                                    "max_leverage": {"type": "number", "minimum": 0.1, "maximum": 3}}}},
+    {"name": "ranking",
+     "description": "Evalúa todas las estrategias diarias en varios símbolos y las ordena por Deflated Sharpe, "
+                    "contando TODAS las combinaciones probadas (elegir la mejor de muchas también es sobreajuste).",
+     "inputSchema": {"type": "object", "required": ["symbols"], "additionalProperties": False,
+                     "properties": {"symbols": {"type": "array", "items": SYM, "minItems": 1, "maxItems": 20},
+                                    "strategies": {"type": "array", "items": STRAT}}}},
+    {"name": "goal_simulator",
+     "description": "¿Cuánto tardo en llegar a mi meta (p. ej. $1,000,000) y qué probabilidad hay de quebrar? "
+                    "Remuestrea retornos mensuales reales (de una evaluación o de comprar y mantener un activo) "
+                    "con capital, aportes y varios niveles de apalancamiento.",
+     "inputSchema": {"type": "object", "additionalProperties": False,
+                     "properties": {"evaluation_id": {"type": "integer"}, "symbol": SYM,
+                                    "capital": {"type": "number"}, "monthly_contribution": {"type": "number"},
+                                    "target": {"type": "number"}, "max_years": {"type": "integer"},
+                                    "leverages": {"type": "array", "items": {"type": "number"}, "maxItems": 8}}}},
     {"name": "list_evaluations",
      "description": "Últimas evaluaciones guardadas con su veredicto.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
@@ -116,6 +147,25 @@ def call_tool(name, a, h=None):
         r = SV.evaluate(h, a.get("symbol"), a.get("interval"), a.get("strategy"), a.get("grid"),
                         a.get("train_days"), a.get("test_days"), a.get("start"), a.get("end"), actor="claude-mcp")
         return SV.summarize_evaluation(r)
+    if name == "list_allocations":
+        _args(a, [])
+        return SV.list_allocations()
+    if name == "evaluate_portfolio":
+        a = _args(a, ["symbols", "strategy", "safe", "benchmark", "grid", "train_years", "test_years",
+                      "target_vol", "max_leverage"])
+        r = SV.evaluate_portfolio(h, a.get("symbols"), a.get("strategy"), a.get("safe"), a.get("benchmark"),
+                                  a.get("grid"), a.get("train_years", 5), a.get("test_years", 1),
+                                  a.get("target_vol", 0.0), a.get("max_leverage", 1.0), actor="claude-mcp")
+        return SV.summarize_portfolio(r)
+    if name == "ranking":
+        a = _args(a, ["symbols", "strategies"])
+        return SV.ranking(h, a.get("symbols"), a.get("strategies"), actor="claude-mcp")
+    if name == "goal_simulator":
+        a = _args(a, ["evaluation_id", "symbol", "capital", "monthly_contribution", "target", "max_years",
+                      "leverages"])
+        return SV.goal(h, a.get("evaluation_id"), a.get("symbol"), a.get("capital", 10000),
+                       a.get("monthly_contribution", 0), a.get("target", 1_000_000), a.get("max_years", 40),
+                       a.get("leverages") or [1, 1.5, 2, 3])
     if name == "list_evaluations":
         _args(a, [])
         led = Ledger(h)
@@ -125,7 +175,8 @@ def call_tool(name, a, h=None):
             led.close()
     if name == "get_evaluation":
         a = _args(a, ["evaluation_id"])
-        return SV.summarize_evaluation(SV.get_evaluation(h, a.get("evaluation_id")))
+        r = SV.get_evaluation(h, a.get("evaluation_id"))
+        return SV.summarize_portfolio(r) if r.get("kind") == "portfolio" else SV.summarize_evaluation(r)
     if name == "propose_order":
         a = _args(a, ["symbol", "qty", "entry", "stop", "target", "evaluation_id", "note"])
         led = Ledger(h)

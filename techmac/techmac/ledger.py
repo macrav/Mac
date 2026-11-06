@@ -181,7 +181,8 @@ class Ledger:
                 age = dt.datetime.now(UTC) - dt.datetime.fromisoformat(ev["created"])
                 if not ev["passed"]:
                     reasons.append("La evaluación #%d fue RECHAZADA." % ev["id"])
-                if ev["symbol"] != symbol:
+                port = ev["symbol"].startswith("PORT:") and symbol in ev["symbol"][5:].split(",")
+                if ev["symbol"] != symbol and not port:
                     reasons.append("La evaluación #%d es de %s, no de %s." % (ev["id"], ev["symbol"], symbol))
                 if age.days > cfg["max_evaluation_age_days"]:
                     reasons.append("La evaluación #%d tiene %d días (máx. %d)." % (ev["id"], age.days,

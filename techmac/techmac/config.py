@@ -38,6 +38,8 @@ DEFAULTS = {
         "min_dsr": (0.95, 0.5, 0.9999),
         "max_dd_p95_pct": (20.0, 1.0, 100.0),
         "require_beat_buy_hold": (True, None, None),
+        "min_oos_years": (8, 1, 50),
+        "max_dd_portfolio_pct": (35.0, 5.0, 100.0),
     }, None, None),
 }
 

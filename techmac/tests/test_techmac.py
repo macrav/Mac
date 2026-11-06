@@ -344,6 +344,14 @@ class TestLedger(unittest.TestCase):
         self.assertEqual(st["closed_trades"], 1)
         self.assertTrue(self.led.verify_audit()["ok"])
 
+    def test_portfolio_evaluation_covers_member_symbols(self):
+        rep = {"symbol": "PORT:SPY,EFA,SHY", "interval": "1d", "strategy": "dual_momentum",
+               "data": {"fingerprint": "x"}, "verdict": {"pass": True, "label": "APROBADA para prueba en papel"}}
+        eid = self.led.save_evaluation(rep, "test")
+        self.led.propose("EFA", 5, 80, 75, 90, eid)
+        with self.assertRaises(RiskBlocked):
+            self.led.propose("QQQ", 5, 80, 75, 90, eid)
+
     def test_kill_switch(self):
         (Path(self.h) / "KILL").write_text("x")
         with self.assertRaises(RiskBlocked) as cm:
@@ -370,6 +378,108 @@ class TestLedger(unittest.TestCase):
         self.led.conn.execute("DROP TRIGGER audit_no_update")
         self.led.conn.execute("UPDATE audit SET payload='{\"x\":1}' WHERE id=2")
         self.assertFalse(self.led.verify_audit()["ok"])
+
+
+class TestNewStrategies(unittest.TestCase):
+    def test_no_lookahead(self):
+        d = daily_series(800)
+        for cls in (S.Rsi2, S.Ibs, S.TrendFilter, S.TimeSeriesMomentum):
+            TestNoLookahead._check(self, cls, d, 500)
+
+    def test_they_trade(self):
+        d = daily_series(1500, drift=0.0005)
+        cfg = E.EngineConfig(10000, 1.0, 100.0, 955, E.Costs())
+        for cls in (S.Rsi2, S.Ibs, S.TrendFilter, S.TimeSeriesMomentum):
+            res = E.run(d, cls(), cfg)
+            self.assertGreater(len(res.trades), 3, cls.name)
+
+    def test_rsi_bounds(self):
+        r = S.rsi([float(x % 7) + 1 for x in range(100)], 2)
+        self.assertTrue(all(x is None or 0 <= x <= 100 for x in r))
+
+
+def make_panel(n=2600, k=3, seed=4, jump=None):
+    from techmac.portfolio import Panel
+    rng = random.Random(seed)
+    dates, d = [], dt.date(2000, 1, 3)
+    while len(dates) < n:
+        if d.weekday() < 5:
+            dates.append(d)
+        d += dt.timedelta(days=1)
+    closes, px = [], [100.0] * k
+    for t in range(n):
+        px = [p * (1 + rng.gauss(0.0002, 0.01)) for p in px]
+        if jump and t in jump:
+            px[jump[t][0]] *= jump[t][1]
+        closes.append(list(px))
+    return Panel(["A", "B", "C"][:k], dates, closes)
+
+
+class TestPortfolio(unittest.TestCase):
+    def test_one_day_execution_lag(self):
+        from techmac import portfolio as P
+        base = make_panel(300, 2)
+        t0 = next(t for t in range(30, 300) if base.month_end[t])
+        flat = [[100.0, 100.0] for _ in range(300)]
+        for t in range(t0 + 2, 300):
+            flat[t][1] = 200.0                     # B se duplica el día t0+2
+        p = P.Panel(["A", "B"], base.dates, flat)
+        p2 = [[100.0, 100.0] for _ in range(300)]
+        for t in range(t0 + 1, 300):
+            p2[t][1] = 200.0                       # ... o el día t0+1, antes de poder ejecutar
+        p2 = P.Panel(["A", "B"], base.dates, p2)
+        cfg = P.PortfolioConfig(cost_bps=0)
+        eq, _ = P.run(p, lambda t: P.EqualWeight(), None, cfg, t0, 300)
+        eq2, _ = P.run(p2, lambda t: P.EqualWeight(), None, cfg, t0, 300)
+        self.assertAlmostEqual(eq[-1][1], 15000.0, places=4)   # captura la mitad del salto
+        self.assertAlmostEqual(eq2[-1][1], 10000.0, places=4)  # no puede capturar lo que pasó antes de ejecutar
+
+    def test_costs_and_no_lookahead(self):
+        from techmac import portfolio as P
+        p = make_panel()
+        a, _ = P.run(p, lambda t: P.DualMomentum(lookback=63), 2, P.PortfolioConfig(cost_bps=0), 300, 2600)
+        b, _ = P.run(p, lambda t: P.DualMomentum(lookback=63), 2, P.PortfolioConfig(cost_bps=20), 300, 2600)
+        self.assertLess(b[-1][1], a[-1][1])
+        future = [row if t < 1500 else [x * random.Random(t).uniform(0.5, 2) for x in row]
+                  for t, row in enumerate(p.closes)]
+        q = P.Panel(p.symbols, p.dates, future)
+        for cls in P.ALLOCATIONS.values():
+            st = cls()
+            for t in (400, 900, 1499):
+                self.assertEqual(st.weights(p, t, 2), st.weights(q, t, 2), cls.name)
+
+    def test_evaluate_random_is_rejected(self):
+        from techmac import portfolio as P
+        cfg = C._defaults(C.DEFAULTS)
+        r = P.evaluate(make_panel(), P.DualMomentum, None, "C", P.PortfolioConfig.from_config(cfg),
+                       cfg["criteria"], 3, 1)
+        self.assertFalse(r["verdict"]["pass"])
+        self.assertIn("current_target_weights", r)
+        self.assertGreater(len(r["oos_monthly_returns"]), 36)
+        for f in r["folds"]:
+            self.assertLess(f["train"][1], f["test"][0])
+
+    def test_safe_asset_required(self):
+        from techmac import portfolio as P
+        cfg = C._defaults(C.DEFAULTS)
+        with self.assertRaises(V.ValidationError):
+            P.evaluate(make_panel(), P.DualMomentum, None, None, P.PortfolioConfig.from_config(cfg), cfg["criteria"])
+
+
+class TestGoal(unittest.TestCase):
+    def test_leverage_raises_risk(self):
+        from techmac import goal as G
+        rng = random.Random(1)
+        monthly = [rng.gauss(0.008, 0.045) for _ in range(360)]
+        r = G.simulate(monthly, 10000, 500, 1_000_000, 40, [1, 3], sims=1500)
+        one, three = r["results"]
+        self.assertGreaterEqual(three["prob_ruin_pct"], one["prob_ruin_pct"])
+        self.assertGreater(three["prob_drop_50pct"], one["prob_drop_50pct"])
+
+    def test_needs_history(self):
+        from techmac import goal as G
+        with self.assertRaises(V.ValidationError):
+            G.simulate([0.01] * 10, 10000, 0, 1e6, 10, [1])
 
 
 class TestMCP(unittest.TestCase):
@@ -400,6 +510,7 @@ class TestMCP(unittest.TestCase):
             self.assertEqual(by[1]["result"]["serverInfo"]["name"], "TechMaC")
             names = {t["name"] for t in by[2]["result"]["tools"]}
             self.assertIn("evaluate", names)
+            self.assertTrue({"evaluate_portfolio", "ranking", "goal_simulator"} <= names)
             self.assertFalse(any("approve" in n or "execute" in n or "fetch" in n for n in names))
             self.assertTrue(by[3]["result"]["isError"])           # sin evaluación aprobada
             self.assertTrue(by[4]["result"]["isError"])           # herramienta inexistente

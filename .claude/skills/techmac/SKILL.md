@@ -23,6 +23,8 @@ list_evaluations, get_evaluation, propose_order, ledger_status, verify_audit) y 
    estrategia, no para decidir.
 3. **Evaluar.** `evaluate` hace walk-forward fuera de muestra, costos x2, Monte Carlo por bloques,
    Deflated Sharpe y compara contra comprar y mantener. Es lo único que da un veredicto.
+   Para portafolios globales usa `evaluate_portfolio` (con activo seguro, p. ej. SHY) y para comparar
+   muchas estrategias a la vez `ranking`.
 4. **Informar.** Da primero el veredicto y luego cada filtro que falló, con su valor. Si es RECHAZADA,
    dilo sin adornos y no propongas órdenes con esa estrategia. Si los datos son pocos (p. ej. 60 días
    de velas de 5 minutos), dilo: el resultado no es concluyente.
@@ -31,6 +33,12 @@ list_evaluations, get_evaluation, propose_order, ledger_status, verify_audit) y 
 6. **Aprobar: nunca tú.** El usuario aprueba en SU terminal con
    `python3 techmac/tm.py approve <id>` y la frase exacta. Luego ejecuta la orden él mismo en su broker y
    registra el precio con `record-fill` y `record-exit`.
+
+## Si el usuario quiere "hacerse rico rápido"
+
+Usa `goal_simulator` y muéstrale la tabla: años hasta la meta, probabilidad de quiebra y de caer 50 %
+según el apalancamiento. Explica sin sermonear que el apalancamiento acorta poco el plazo y dispara el
+riesgo, y que lo que más mueve el resultado es el aporte mensual y el tiempo.
 
 ## Reglas
 

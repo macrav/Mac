@@ -197,7 +197,133 @@ class Donchian(Strategy):
         return self.ll[i] is not None and self.series.bars[i].c < self.ll[i]
 
 
-REGISTRY = {cls.name: cls for cls in (OpeningRangeBreakout, SmaCross, Donchian)}
+def rsi(xs, n):
+    """RSI de Wilder, causal."""
+    out = [None] * len(xs)
+    if len(xs) <= n:
+        return out
+    gains = [max(0.0, xs[i] - xs[i - 1]) for i in range(1, len(xs))]
+    losses = [max(0.0, xs[i - 1] - xs[i]) for i in range(1, len(xs))]
+    ag, al = sum(gains[:n]) / n, sum(losses[:n]) / n
+    for i in range(n, len(xs)):
+        if i > n:
+            ag = (ag * (n - 1) + gains[i - 1]) / n
+            al = (al * (n - 1) + losses[i - 1]) / n
+        out[i] = 100.0 if al == 0 else 100.0 - 100.0 / (1 + ag / al)
+    return out
+
+
+class Rsi2(Strategy):
+    name = "rsi2"
+    description = ("Reversión a la media de Larry Connors (RSI de 2 días): compra cuando el RSI(2) cae bajo el umbral "
+                   "y el precio está sobre su media de 200 días (solo retrocesos dentro de tendencia alcista). Sale "
+                   "cuando cierra sobre la media corta o tras max_hold días. Stop de emergencia a atr_mult x ATR.")
+    PARAMS = {
+        "rsi_n": (2, 2, 14, True),
+        "entry_below": (10.0, 1.0, 40.0, False),
+        "trend_n": (200, 20, 400, True),
+        "exit_sma": (5, 2, 50, True),
+        "max_hold": (10, 1, 60, True),
+        "atr_mult": (4.0, 0.5, 10.0, False),
+    }
+    GRID = {"entry_below": [5.0, 10.0, 15.0], "exit_sma": [5, 10]}
+
+    def _prepare(self, s):
+        p = self.params
+        c = [b.c for b in s.bars]
+        r = rsi(c, p["rsi_n"])
+        t = sma(c, p["trend_n"])
+        self.ex = sma(c, p["exit_sma"])
+        a = atr(s.bars, 14)
+        self._sig = [(c[i] - p["atr_mult"] * a[i], None)
+                     if None not in (r[i], t[i], a[i]) and r[i] < p["entry_below"] and c[i] > t[i] else None
+                     for i in range(len(c))]
+
+    def exit(self, i, pos):
+        return ((self.ex[i] is not None and self.series.bars[i].c > self.ex[i])
+                or i - pos.i_entry + 1 >= self.params["max_hold"])
+
+
+class Ibs(Strategy):
+    name = "ibs"
+    description = ("Internal Bar Strength: IBS = (cierre - mínimo) / (máximo - mínimo). Compra cuando el día cierra "
+                   "cerca de su mínimo (IBS bajo) con el precio sobre su media de tendencia; sale cuando el IBS sube "
+                   "sobre exit_above o tras max_hold días. Efecto documentado en índices bursátiles.")
+    PARAMS = {
+        "entry_below": (0.2, 0.01, 0.5, False),
+        "exit_above": (0.8, 0.3, 0.99, False),
+        "trend_n": (200, 0, 400, True),       # 0 = sin filtro de tendencia
+        "max_hold": (5, 1, 30, True),
+        "atr_mult": (4.0, 0.5, 10.0, False),
+    }
+    GRID = {"entry_below": [0.1, 0.2, 0.3], "exit_above": [0.5, 0.8]}
+
+    def _prepare(self, s):
+        p = self.params
+        c = [b.c for b in s.bars]
+        self.ibs = [(b.c - b.l) / (b.h - b.l) if b.h > b.l else 0.5 for b in s.bars]
+        t = sma(c, p["trend_n"]) if p["trend_n"] else [0.0] * len(c)
+        a = atr(s.bars, 14)
+        self._sig = [(c[i] - p["atr_mult"] * a[i], None)
+                     if t[i] is not None and a[i] is not None and self.ibs[i] < p["entry_below"] and c[i] > t[i]
+                     else None for i in range(len(c))]
+
+    def exit(self, i, pos):
+        return self.ibs[i] > self.params["exit_above"] or i - pos.i_entry + 1 >= self.params["max_hold"]
+
+
+class TrendFilter(Strategy):
+    name = "trend_filter"
+    description = ("Filtro de tendencia de Meb Faber: invertido mientras el precio está sobre su media de N días, "
+                   "fuera cuando cae bajo la media menos una banda (evita entrar y salir por ruido). Su objetivo no "
+                   "es ganarle al índice en retorno sino recortar las grandes caídas.")
+    PARAMS = {
+        "sma_n": (200, 20, 400, True),
+        "band_pct": (1.0, 0.0, 10.0, False),
+        "atr_mult": (6.0, 1.0, 20.0, False),
+    }
+    GRID = {"sma_n": [100, 150, 200], "band_pct": [0.0, 2.0]}
+
+    def _prepare(self, s):
+        p = self.params
+        c = [b.c for b in s.bars]
+        self.m = sma(c, p["sma_n"])
+        a = atr(s.bars, 20)
+        self._sig = [(c[i] - p["atr_mult"] * a[i], None)
+                     if self.m[i] is not None and a[i] is not None and c[i] > self.m[i] * (1 + p["band_pct"] / 100)
+                     else None for i in range(len(c))]
+
+    def exit(self, i, pos):
+        m = self.m[i]
+        return m is not None and self.series.bars[i].c < m * (1 - self.params["band_pct"] / 100)
+
+
+class TimeSeriesMomentum(Strategy):
+    name = "tsmom"
+    description = ("Momentum de serie temporal (Moskowitz, Ooi y Pedersen, 2012): invertido mientras el retorno de los "
+                   "últimos N días es positivo, fuera cuando es negativo. Es la base de los fondos de seguimiento "
+                   "de tendencia (CTA).")
+    PARAMS = {
+        "lookback": (252, 20, 504, True),
+        "atr_mult": (6.0, 1.0, 20.0, False),
+    }
+    GRID = {"lookback": [63, 126, 252], "atr_mult": [4.0, 8.0]}
+
+    def _prepare(self, s):
+        p, n = self.params, self.params["lookback"]
+        c = [b.c for b in s.bars]
+        self.mom = [c[i] / c[i - n] - 1 if i >= n else None for i in range(len(c))]
+        a = atr(s.bars, 20)
+        self._sig = [(c[i] - p["atr_mult"] * a[i], None)
+                     if self.mom[i] is not None and a[i] is not None and self.mom[i] > 0 else None
+                     for i in range(len(c))]
+
+    def exit(self, i, pos):
+        return self.mom[i] is not None and self.mom[i] < 0
+
+
+REGISTRY = {cls.name: cls for cls in (OpeningRangeBreakout, SmaCross, Donchian, Rsi2, Ibs, TrendFilter,
+                                       TimeSeriesMomentum)}
 
 
 def get(name):

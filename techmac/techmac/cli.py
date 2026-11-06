@@ -67,6 +67,57 @@ def _print_verdict(r):
     print(v["meaning"])
 
 
+def _print_portfolio(r):
+    o, b, ew = r["out_of_sample"], r["benchmark_buy_and_hold"], r["equal_weight_same_assets"]
+    st = r["setup"]
+    print("\n=== Portafolio %s | %s | evaluación #%s ===" % (",".join(st["symbols"]), r["strategy"], r.get("evaluation_id")))
+    print("Fuera de muestra %s a %s (%d ventanas, %d combinaciones)" % (o["period"][0], o["period"][1],
+                                                                       len(r["folds"]), st["combos_tested"]))
+    fmt = "  %-26s CAGR %6s %%  Sharpe %6s  Máx. caída %6s %%"
+    print(fmt % ("Estrategia", o["equity"]["cagr_pct"], o["equity"]["sharpe_annual"], o["equity"]["max_drawdown_pct"]))
+    print(fmt % ("Con costos x2", r["stress_costs_x2"]["cagr_pct"], r["stress_costs_x2"]["sharpe_annual"],
+                 r["stress_costs_x2"]["max_drawdown_pct"]))
+    print(fmt % ("Comprar y mantener " + st["benchmark"], b["cagr_pct"], b["sharpe_annual"], b["max_drawdown_pct"]))
+    print(fmt % ("Mismo peso, mismos activos", ew["cagr_pct"], ew["sharpe_annual"], ew["max_drawdown_pct"]))
+    print("  Rotación: %s veces el capital al año | DSR %s" % (o["turnover_per_year"], o["dsr"]))
+    w = r["current_target_weights"]
+    print("Pesos que tocaría tener hoy (%s): %s, efectivo %s" % (w["as_of"], w["weights"], w["cash"]))
+    v = r["verdict"]
+    print("\nVEREDICTO: %s" % v["label"])
+    for c in v["checks"]:
+        print("  [%s] %-36s %s (regla %s)" % ("OK" if c["pass"] else "NO", c["check"], c["value"], c["rule"]))
+    print(v["meaning"])
+
+
+def _print_ranking(r):
+    print("\nRanking (el DSR de cada fila cuenta las %d combinaciones probadas en total)\n" % r["total_trials_counted"])
+    print("%-6s %-14s %-5s %8s %7s %8s %7s %7s %6s  %s" % ("Símbolo", "Estrategia", "Eval", "Oper.", "Exp.R",
+                                                          "Sharpe", "B&H", "MáxDD", "DSR", "Veredicto"))
+    for x in r["rows"]:
+        if "error" in x:
+            print("%-6s %-14s  error: %s" % (x["symbol"], x["strategy"], x["error"]))
+            continue
+        print("%-7s %-14s #%-4s %8s %7s %8s %7s %7s %6s  %s" % (
+            x["symbol"], x["strategy"], x["evaluation_id"], x["trades"], x["expectancy_r"], x["sharpe"],
+            x["buy_hold_sharpe"], x["max_dd_pct"], x["dsr"], x["verdict"]))
+
+
+def _print_goal(r):
+    print("\nFuente: %s, %d meses de historia, %d simulaciones" % (r["source"], r["months_of_history"], r["simulations"]))
+    print("Capital $%s + $%s/mes, meta $%s, horizonte %d años\n" % (
+        format(r["capital"], ",.0f"), format(r["monthly_contribution"], ",.0f"), format(r["target"], ",.0f"),
+        r["horizon_years"]))
+    print("%-7s %12s %10s %10s %10s %10s %14s" % ("Apalanc.", "Años (med.)", "P<=10a", "P<=20a", "P quiebra",
+                                                 "P caída50", "Final mediano"))
+    for x in r["results"]:
+        print("%-7s %12s %9s%% %9s%% %9s%% %9s%% %14s" % (
+            "%sx" % x["leverage"], x["median_years_to_target"] if x["median_years_to_target"] is not None else "nunca*",
+            x["prob_target_10y_pct"], x["prob_target_20y_pct"], x["prob_ruin_pct"], x["prob_drop_50pct"],
+            format(x["final_median"], ",.0f")))
+    print("\n* menos de la mitad de las simulaciones llega a la meta en el horizonte.")
+    print(r["warning"])
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="tm.py", description="TechMaC: backtesting serio y libro en papel, 100 % local.")
     p.add_argument("--json", action="store_true", help="salida JSON")
@@ -138,6 +189,32 @@ def main(argv=None):
     k = sub.add_parser("kill", help="interruptor de emergencia: on bloquea toda orden nueva")
     k.add_argument("state", choices=["on", "off"])
 
+    sub.add_parser("allocations", help="estrategias de portafolio multi-activo")
+    po = sub.add_parser("portfolio", help="evalúa un portafolio global con rebalanceo mensual (walk-forward)")
+    po.add_argument("symbols", nargs="+", help="activos, incluido el seguro, p. ej. SPY EFA EEM GLD IEF SHY")
+    po.add_argument("--strategy", default="dual_momentum")
+    po.add_argument("--safe", help="activo seguro (debe estar en la lista), p. ej. SHY")
+    po.add_argument("--benchmark", help="por defecto el primer símbolo")
+    po.add_argument("--grid")
+    po.add_argument("--train-years", type=int, default=5)
+    po.add_argument("--test-years", type=int, default=1)
+    po.add_argument("--target-vol", type=float, default=0.0, help="volatilidad anual objetivo en %%, 0 = apagado")
+    po.add_argument("--max-leverage", type=float, default=1.0)
+
+    rk = sub.add_parser("ranking", help="evalúa todas las estrategias diarias en varios símbolos y las ordena")
+    rk.add_argument("symbols", nargs="+")
+    rk.add_argument("--strategies", help="lista separada por comas (por defecto todas las diarias)")
+
+    g = sub.add_parser("goal", help="¿cuánto tardo en llegar a mi meta y cuál es el riesgo de quebrar?")
+    src = g.add_mutually_exclusive_group(required=True)
+    src.add_argument("--evaluation", type=int, help="usar los retornos fuera de muestra de esta evaluación")
+    src.add_argument("--symbol", help="usar comprar y mantener este activo")
+    g.add_argument("--capital", type=float, default=10000)
+    g.add_argument("--monthly", type=float, default=0, help="aporte mensual")
+    g.add_argument("--target", type=float, default=1_000_000)
+    g.add_argument("--years", type=int, default=40)
+    g.add_argument("--leverage", default="1,1.5,2,3")
+
     a = p.parse_args(argv)
     h = C.home()
     try:
@@ -206,6 +283,35 @@ def _dispatch(a, h):
             _out(r, True)
         else:
             _print_verdict(r)
+        return 0
+
+    if a.cmd == "allocations":
+        _out(SV.list_allocations(), a.json)
+        return 0
+    if a.cmd == "portfolio":
+        r = SV.evaluate_portfolio(h, a.symbols, a.strategy, a.safe, a.benchmark,
+                                  json.loads(a.grid) if a.grid else None, a.train_years, a.test_years,
+                                  a.target_vol, a.max_leverage, actor="humano-terminal")
+        if a.json:
+            _out(r, True)
+        else:
+            _print_portfolio(r)
+        return 0
+    if a.cmd == "ranking":
+        strategies = [x.strip() for x in a.strategies.split(",")] if a.strategies else None
+        r = SV.ranking(h, a.symbols, strategies, actor="humano-terminal")
+        if a.json:
+            _out(r, True)
+        else:
+            _print_ranking(r)
+        return 0
+    if a.cmd == "goal":
+        levs = [float(x) for x in a.leverage.split(",") if x.strip()]
+        r = SV.goal(h, a.evaluation, a.symbol, a.capital, a.monthly, a.target, a.years, levs)
+        if a.json:
+            _out(r, True)
+        else:
+            _print_goal(r)
         return 0
 
     led = Ledger(h)

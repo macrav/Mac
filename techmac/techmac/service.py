@@ -123,3 +123,91 @@ def import_plan_orders(h, path, evaluation_id=None, actor="humano-terminal"):
     finally:
         led.close()
     return out
+
+
+# ---------- portafolios, ranking y meta ----------
+
+def list_allocations():
+    from . import portfolio as P
+    return [c.describe() for c in P.ALLOCATIONS.values()]
+
+
+def evaluate_portfolio(h=None, symbols=None, strategy="dual_momentum", safe=None, benchmark=None, grid=None,
+                       train_years=5, test_years=1, target_vol=0.0, max_leverage=1.0, start=None, end=None,
+                       extra_trials=0, actor="claude"):
+    from . import portfolio as P
+    cfg = C.load(h)
+    panel = P.load_panel(h, symbols, start, end)
+    pcfg = P.PortfolioConfig.from_config(cfg, target_vol, max_leverage)
+    report = P.evaluate(panel, P.get(strategy), grid, safe, pcfg, cfg["criteria"], train_years, test_years,
+                        benchmark, extra_trials)
+    led = Ledger(h, cfg)
+    try:
+        report["evaluation_id"] = led.save_evaluation(report, actor)
+    finally:
+        led.close()
+    return report
+
+
+def summarize_portfolio(r):
+    return {k: r[k] for k in ("evaluation_id", "symbol", "strategy", "setup", "verdict", "out_of_sample",
+                              "stress_costs_x2", "benchmark_buy_and_hold", "equal_weight_same_assets",
+                              "current_target_weights") if k in r} | {"folds": len(r["folds"])}
+
+
+def ranking(h=None, symbols=None, strategies=None, actor="claude"):
+    """Evalúa cada estrategia diaria en cada símbolo. El DSR de cada una cuenta TODAS las combinaciones del
+    ranking, porque elegir la mejor de muchas también es sobreajuste."""
+    if not isinstance(symbols, list) or not 1 <= len(symbols) <= 20:
+        raise V.ValidationError("Da de 1 a 20 símbolos.")
+    names = strategies or [n for n, c in S.REGISTRY.items() if not c.intraday]
+    classes = [S.get(n) for n in names]
+    if any(c.intraday for c in classes):
+        raise V.ValidationError("El ranking usa estrategias diarias.")
+    total = sum(len(S.expand_grid(c)) for c in classes) * len(symbols)
+    rows = []
+    for sym in symbols:
+        for c in classes:
+            n_own = len(S.expand_grid(c))
+            try:
+                cfg = C.load(h)
+                s = _series(h, sym, "1d")
+                rep = W.evaluate(s, c, None, E.EngineConfig.from_config(cfg), cfg["criteria"],
+                                 extra_trials=total - n_own)
+                led = Ledger(h, cfg)
+                try:
+                    eid = led.save_evaluation(rep, actor)
+                finally:
+                    led.close()
+                t, eq = rep["out_of_sample"]["trades"], rep["out_of_sample"]["equity"]
+                rows.append({"symbol": sym, "strategy": c.name, "evaluation_id": eid,
+                             "verdict": rep["verdict"]["label"], "trades": t.get("trades", 0),
+                             "expectancy_r": t.get("expectancy_r"), "sharpe": eq.get("sharpe_annual"),
+                             "buy_hold_sharpe": rep["buy_and_hold_same_period"].get("sharpe_annual"),
+                             "cagr_pct": eq.get("cagr_pct"), "max_dd_pct": eq.get("max_drawdown_pct"),
+                             "dsr": rep["out_of_sample"]["dsr"],
+                             "failed": [x["check"] for x in rep["verdict"]["checks"] if not x["pass"]]})
+            except V.ValidationError as e:
+                rows.append({"symbol": sym, "strategy": c.name, "error": str(e)})
+    rows.sort(key=lambda r: (r.get("dsr") is None, -(r.get("dsr") or 0)))
+    return {"total_trials_counted": total, "rows": rows}
+
+
+def goal(h=None, evaluation_id=None, symbol=None, capital=10000, monthly_contribution=0, target=1_000_000,
+         max_years=40, leverages=(1, 1.5, 2, 3)):
+    from . import goal as G
+    from .portfolio import monthly_returns
+    if evaluation_id is not None:
+        rep = get_evaluation(h, evaluation_id)
+        monthly = rep.get("oos_monthly_returns") or []
+        source = "evaluación #%s (%s %s, fuera de muestra, %s)" % (evaluation_id, rep["symbol"], rep["strategy"],
+                                                                    rep["verdict"]["label"])
+    elif symbol:
+        s = _series(h, symbol, "1d")
+        monthly = monthly_returns([(d, b.c) for d, b in zip(s.dates, s.bars)])
+        source = "comprar y mantener %s (%s a %s)" % (s.symbol, s.dates[0], s.dates[-1])
+    else:
+        raise V.ValidationError("Indica evaluation_id o symbol.")
+    r = G.simulate(monthly, capital, monthly_contribution, target, max_years, list(leverages))
+    r["source"] = source
+    return r

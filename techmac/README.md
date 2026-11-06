@@ -52,9 +52,74 @@ Si no, queda **RECHAZADA**. Una evaluación APROBADA es requisito para proponer 
 | AAPL 1d, cruce de medias | 66 operaciones, +0.17 R, con costos x2 −0.16 R | RECHAZADA |
 | SPY 5m, ruptura de apertura (60 días) | 14 operaciones, −0.27 R | RECHAZADA |
 
+Portafolios globales (`SPY EFA EEM GLD IEF SHY`, fuera de muestra de diciembre de 2010 a noviembre de 2026):
+
+| Portafolio | CAGR | Sharpe | Máx. caída | Veredicto |
+| --- | --- | --- | --- | --- |
+| Comprar y mantener SPY (referencia) | 13.9 % | 0.85 | 33.7 % | — |
+| Momentum dual | 6.7 % | 0.51 | 31.9 % | RECHAZADA |
+| Momentum relativo | 7.7 % | 0.70 | 28.1 % | RECHAZADA |
+| Paridad de riesgo | 5.8 % | 0.72 | 20.6 % | RECHAZADA |
+| Tendencia + paridad de riesgo | 3.7 % | 0.64 | **13.8 %** | RECHAZADA |
+
+Ranking de 7 estrategias × 4 activos (SPY, QQQ, EFA, GLD; 192 combinaciones): **las 24 RECHAZADAS**.
+Las de tendencia (`trend_filter`, `tsmom`) quedaron arriba, pero ninguna superó el Sharpe de comprar y
+mantener.
+
+¿Cuánto tarda $10,000 en llegar a $1,000,000 con SPY (historia 1993–2026, 4,000 simulaciones)?
+
+| Aporte | Apalancamiento | Años (mediana) | Llegar en ≤ 20 años | Caer 50 % en algún momento |
+| --- | --- | --- | --- | --- |
+| $0 | 1x | más de 40 | 0 % | 29 % |
+| $0 | 3x | 24 | 20 % | 100 % |
+| $500/mes | 1x | 25 | 9 % | 19 % |
+| $500/mes | 2x | 20 | 46 % | 94 % |
+
 Es lo que cabe esperar: las estrategias de manual, sin ventaja propia, no superan al índice. Los tests
 incluyen además una serie sintética con tendencias reales donde el sistema **sí** aprueba, para
 comprobar que el filtro no rechaza todo por diseño.
+
+## Estrategias incluidas
+
+Solo estrategias con respaldo publicado y ampliamente usadas en la industria. Ninguna es secreta ni
+"garantizada": TechMaC las somete a todas al mismo examen.
+
+**De un activo** (`evaluate`, `ranking`):
+
+| Nombre | Origen | Idea |
+| --- | --- | --- |
+| `tsmom` | Moskowitz, Ooi y Pedersen (2012), base de los fondos CTA | Invertido mientras el retorno de N días es positivo |
+| `trend_filter` | Meb Faber (2007) | Invertido sobre la media de 200 días; busca recortar las grandes caídas |
+| `donchian` | Tortugas de Richard Dennis | Ruptura de máximos de N días |
+| `sma_cross` | Clásico | Cruce de medias |
+| `rsi2` | Larry Connors | Comprar retrocesos extremos dentro de una tendencia alcista |
+| `ibs` | Literatura de reversión en índices | Comprar días que cierran cerca de su mínimo |
+| `orb` | day-trader-skill | Ruptura del rango de apertura (intradía) |
+
+**Portafolios globales con rebalanceo mensual** (`portfolio`), por ejemplo con
+`SPY EFA EEM GLD IEF SHY` (EE. UU., desarrollados, emergentes, oro, bonos y bonos cortos):
+
+| Nombre | Origen | Idea |
+| --- | --- | --- |
+| `dual_momentum` | Gary Antonacci (GEM) | Todo en el mejor activo de riesgo si su momentum es positivo; si no, al activo seguro |
+| `relative_momentum` | Jegadeesh y Titman; Faber | Los mejores N activos por momentum, con filtro absoluto |
+| `trend_parity` | GTAA de Faber + paridad de riesgo | Pesos por inversa de volatilidad; lo que esté bajo su media va al activo seguro |
+| `risk_parity` | Bridgewater All Weather (idea) | Cada activo aporta un riesgo parecido |
+| `equal_weight` | Referencia | Mismo peso en todo |
+
+Opciones: `--target-vol` (apunta a una volatilidad anual) y `--max-leverage` (apagado por defecto; si
+se usa, se cobra financiación). El veredicto de un portafolio exige ≥ 8 años fuera de muestra,
+DSR ≥ 0.95, Sharpe mayor que el benchmark (también con costos x2) y una caída máxima ≤ 35 %. También
+muestra **los pesos que tocaría tener hoy**.
+
+**Ranking** (`ranking SPY QQQ EFA GLD`): evalúa todas las estrategias diarias en todos los símbolos.
+El DSR de cada fila cuenta **todas** las combinaciones del ranking, porque quedarse con la mejor de
+muchas también es sobreajuste.
+
+**Simulador de meta** (`goal`): ¿cuánto tardo en llegar a $1,000,000 y qué probabilidad tengo de
+quebrar? Remuestrea por bloques de 12 meses los retornos mensuales reales de una evaluación (fuera de
+muestra) o de comprar y mantener un activo, con tu capital, tus aportes y varios niveles de
+apalancamiento.
 
 ## Seguridad del conector TechMaC
 
@@ -92,6 +157,12 @@ python3 techmac/tm.py backtest SPY --strategy donchian --params '{"entry_n": 55}
 python3 techmac/tm.py evaluate SPY --strategy donchian                               # veredicto serio
 python3 techmac/tm.py evaluate SPY --interval 5m --strategy orb --train-days 40 --test-days 10
 python3 techmac/tm.py evaluate QQQ --strategy sma_cross --grid '{"fast": [10, 20], "slow": [100, 200]}'
+
+python3 techmac/tm.py ranking SPY QQQ EFA GLD                                       # todas contra todas
+python3 techmac/tm.py fetch EFA EEM GLD IEF SHY
+python3 techmac/tm.py portfolio SPY EFA EEM GLD IEF SHY --strategy trend_parity --safe SHY
+python3 techmac/tm.py goal --symbol SPY --capital 10000 --monthly 500               # ¿cuándo llego al millón?
+python3 techmac/tm.py goal --evaluation 14 --capital 10000 --monthly 500 --leverage 1,2
 
 python3 techmac/tm.py propose SPY --qty 5 --entry 500 --stop 495 --target 510 --evaluation 12
 python3 techmac/tm.py approve 1                             # solo en tu terminal, con la frase exacta
@@ -137,6 +208,12 @@ En `claude_desktop_config.json`:
   empresas que quebraron o salieron de bolsa) y solo dan 60 días de velas de 5 minutos. Para trabajo
   serio en intradía, importa datos de un proveedor con `import-csv`.
 - Por ahora solo compras (sin cortos, opciones ni margen) y una posición por símbolo y evaluación.
+- Los ETFs empiezan entre 1993 y 2005; el período fuera de muestra de los portafolios (2010–2026) fue
+  excepcional para las acciones de EE. UU., lo que favorece a comprar y mantener SPY. En otras décadas
+  (2000–2009) la diversificación y la tendencia lucieron mucho mejor. Prueba también con `--benchmark`
+  distinto o con más historia importada.
+- En portafolios, el efectivo no rinde nada (conservador) y el simulador de meta usa retornos mensuales,
+  así que subestima las caídas dentro del mes.
 - El motor trabaja con velas, no con ticks. Dentro de una vela asume el peor caso, que es conservador
   pero no exacto.
 - La comparación del drawdown en % es aproximada: drawdown en R × riesgo por operación.

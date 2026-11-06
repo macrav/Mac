@@ -8,6 +8,7 @@ from . import engine as E
 from . import metrics as M
 from . import strategies as S
 from . import validate as V
+from .portfolio import monthly_returns
 
 
 def _date_bounds(series):
@@ -63,9 +64,11 @@ def walk_forward(series, strat_cls, grid, ecfg, train_days, test_days, min_train
     dates, bounds = _date_bounds(series)
     folds, segments, fold_vars = [], [], []
     k = 0
-    while k + train_days + test_days <= len(dates):
+    min_tail = max(1, test_days // 4)
+    while k + train_days + min_tail <= len(dates):          # la última ventana puede ser parcial
+        last = min(k + train_days + test_days, len(dates)) - 1
         tr0, tr1 = bounds[dates[k]][0], bounds[dates[k + train_days - 1]][1]
-        te0, te1 = bounds[dates[k + train_days]][0], bounds[dates[k + train_days + test_days - 1]][1]
+        te0, te1 = bounds[dates[k + train_days]][0], bounds[dates[last]][1]
         best, best_score, srs = None, -math.inf, []
         for st in combos:
             res = E.run(series, st, ecfg, tr0, tr1)
@@ -77,7 +80,7 @@ def walk_forward(series, strat_cls, grid, ecfg, train_days, test_days, min_train
             fold_vars.append(statistics.pvariance(srs))
         segments.append((te0, te1, best))
         folds.append({"train": [str(dates[k]), str(dates[k + train_days - 1])],
-                      "test": [str(dates[k + train_days]), str(dates[k + train_days + test_days - 1])],
+                      "test": [str(dates[k + train_days]), str(dates[last])],
                       "params": best.params if best else None,
                       "train_sharpe_annual": round(best_score * math.sqrt(252), 3) if best else None})
         k += test_days
@@ -169,7 +172,7 @@ def bounds_end(series, last_date):
     return end
 
 
-def evaluate(series, strat_cls, grid, ecfg, criteria, train_days=None, test_days=None):
+def evaluate(series, strat_cls, grid, ecfg, criteria, train_days=None, test_days=None, extra_trials=0):
     if train_days is None:
         train_days, test_days = (40, 10) if series.intraday else (756, 126)
     if test_days is None:
@@ -181,7 +184,7 @@ def evaluate(series, strat_cls, grid, ecfg, criteria, train_days=None, test_days
     oos = M.trade_stats(wf["trades"])
     stress = M.trade_stats(wf["stress_trades"])
     rets = M.daily_returns(wf["equity"], wf["initial_equity"])
-    dsr_value = M.dsr(rets, wf["n_trials"], wf["var_trial_sr"])
+    dsr_value = M.dsr(rets, wf["n_trials"] + int(extra_trials), wf["var_trial_sr"])
     mc = block_bootstrap([t["r"] for t in wf["trades"]])
     oos_eq = M.equity_stats(wf["equity"], wf["initial_equity"])
     bh = M.buy_and_hold(series, wf["oos_start"], bounds_end(series, wf["folds"][-1]["test"][1]))
@@ -191,10 +194,12 @@ def evaluate(series, strat_cls, grid, ecfg, criteria, train_days=None, test_days
                  "sessions": len(series.unique_dates()), "bars": len(series),
                  "fingerprint": series.fingerprint()},
         "setup": {"train_days": train_days, "test_days": test_days, "combos_tested": wf["n_trials"],
+                  "trials_counted_for_dsr": wf["n_trials"] + int(extra_trials),
                   "risk_pct": ecfg.risk_pct, "costs": vars(ecfg.costs)},
         "out_of_sample": {"trades": oos, "equity": oos_eq, "dsr": round(dsr_value, 4)},
         "stress_costs_x2": stress,
         "monte_carlo": mc,
+        "oos_monthly_returns": [round(x, 6) for x in monthly_returns(wf["equity"])] if not series.intraday else [],
         "buy_and_hold_same_period": bh,
         "folds": wf["folds"],
         "verdict": verdict(oos, stress, dsr_value, mc, ecfg.risk_pct, criteria, oos_eq, bh),

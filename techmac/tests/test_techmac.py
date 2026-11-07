@@ -490,6 +490,56 @@ class TestGoal(unittest.TestCase):
             G.simulate([0.01] * 10, 10000, 0, 1e6, 10, [1])
 
 
+class TestAdvisor(unittest.TestCase):
+    BASE = {"objetivo": 3, "horizonte": 4, "reaccion": 3, "perdida_max": 4, "ingresos": 3, "experiencia": 3,
+            "dependencia": 2}
+
+    def test_aggressive_answers_give_growth(self):
+        from techmac import advisor as AD
+        self.assertEqual(AD.score_profile(self.BASE)["profile"], "crecimiento")
+
+    def test_no_loss_forces_strict(self):
+        from techmac import advisor as AD
+        r = AD.score_profile(dict(self.BASE, perdida_max=0))
+        self.assertEqual(r["profile"], "conservador_estricto")
+        self.assertTrue(r["caps_applied"])
+
+    def test_short_horizon_and_panic_caps(self):
+        from techmac import advisor as AD
+        self.assertEqual(AD.score_profile(dict(self.BASE, horizonte=1))["profile"], "conservador_estricto")
+        self.assertEqual(AD.score_profile(dict(self.BASE, reaccion=0))["profile"], "conservador")
+        self.assertEqual(AD.score_profile(dict(self.BASE, dependencia=0))["profile"], "conservador")
+
+    def test_validation(self):
+        from techmac import advisor as AD
+        with self.assertRaises(V.ValidationError):
+            AD.score_profile(dict(self.BASE, objetivo=9))
+        with self.assertRaises(V.ValidationError):
+            AD.score_profile({"objetivo": 0})
+        with tempfile.TemporaryDirectory() as h:
+            with self.assertRaises(V.ValidationError):
+                AD.save_profile(h, self.BASE, {"apalancamiento": 3})
+
+    def test_plan_orders_debt_first_and_flags_fsd(self):
+        from techmac import advisor as AD
+        with tempfile.TemporaryDirectory() as h:
+            doc = AD.save_profile(h, dict(self.BASE, perdida_max=0), {
+                "moneda": "PEN", "ingreso_mensual": 4000, "gastos_mensuales": 2500, "ahorro_mensual": 900,
+                "ahorros_actuales": 150000, "ahorros_por_entidad": {"Banco X": 150000},
+                "deudas": [{"nombre": "Tarjeta", "saldo": 3000, "tea_pct": 70}]})
+            self.assertEqual(os.stat(Path(h) / "perfil.json").st_mode & 0o777, 0o600)
+            plan = AD.build_plan(AD.load_profile(h))
+            self.assertTrue(plan["steps"][0]["step"].startswith("Pagar deudas"))
+            self.assertTrue(any("FSD" in a and "Banco X" in a for a in plan["alerts"]))
+            self.assertEqual(plan["projection"]["assumed_return_pct"], 4.0)
+            self.assertIn("# Tu plan financiero", AD.plan_markdown(plan))
+
+    def test_freshness(self):
+        from techmac import peru as PE
+        self.assertFalse(PE.freshness(PE.VERIFIED)["stale"])
+        self.assertTrue(PE.freshness(PE.VERIFIED + dt.timedelta(days=120))["stale"])
+
+
 class TestMCP(unittest.TestCase):
     def _session(self, msgs, home):
         env = dict(os.environ, TECHMAC_HOME=home)
@@ -518,7 +568,8 @@ class TestMCP(unittest.TestCase):
             self.assertEqual(by[1]["result"]["serverInfo"]["name"], "TechMaC")
             names = {t["name"] for t in by[2]["result"]["tools"]}
             self.assertIn("evaluate", names)
-            self.assertTrue({"evaluate_portfolio", "ranking", "goal_simulator"} <= names)
+            self.assertTrue({"evaluate_portfolio", "ranking", "goal_simulator", "advisor_questions",
+                             "advisor_save_profile", "advisor_plan", "peru_facts"} <= names)
             self.assertFalse(any("approve" in n or "execute" in n or "fetch" in n for n in names))
             self.assertTrue(by[3]["result"]["isError"])           # sin evaluación aprobada
             self.assertTrue(by[4]["result"]["isError"])           # herramienta inexistente

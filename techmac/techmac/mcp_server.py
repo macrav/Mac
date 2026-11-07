@@ -97,6 +97,31 @@ TOOLS = [
                                     "capital": {"type": "number"}, "monthly_contribution": {"type": "number"},
                                     "target": {"type": "number"}, "max_years": {"type": "integer"},
                                     "leverages": {"type": "array", "items": {"type": "number"}, "maxItems": 8}}}},
+    {"name": "advisor_questions",
+     "description": "Asesor: cuestionario de perfil de riesgo (7 preguntas) y los datos de finanzas que necesita. "
+                    "Haz las preguntas UNA a UNA al usuario, con sus opciones.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "advisor_save_profile",
+     "description": "Asesor: guarda el perfil con las respuestas del usuario (índice de opción, desde 0) y sus "
+                    "finanzas. Solo con datos que el usuario te dio; nunca inventes respuestas.",
+     "inputSchema": {"type": "object", "required": ["answers", "finances"], "additionalProperties": False,
+                     "properties": {
+                         "answers": {"type": "object", "description": "{objetivo, horizonte, reaccion, perdida_max, "
+                                                                      "ingresos, experiencia, dependencia}: índice"},
+                         "finances": {"type": "object", "description":
+                                      "moneda (PEN/USD), ingreso_mensual, gastos_mensuales, ahorro_mensual, "
+                                      "ahorros_actuales, ahorros_por_entidad {entidad: monto}, deudas [{nombre, "
+                                      "saldo, tea_pct, cuota}], dependientes, tipo_trabajo (dependiente/"
+                                      "independiente), aporta_afp, metas [{nombre, monto, anios}]"}}}},
+    {"name": "advisor_plan",
+     "description": "Asesor: plan financiero por etapas (deudas, fondo de emergencia, metas, inversión según "
+                    "perfil, jubilación), alertas de Perú, señales de estafa y proyección con supuestos.",
+     "inputSchema": {"type": "object", "additionalProperties": False,
+                     "properties": {"usd_pen": {"type": "number", "description": "tipo de cambio, opcional"}}}},
+    {"name": "peru_facts",
+     "description": "Asesor: datos de Perú usados (FSD, UIT, tasas, inflación, impuestos, AFP, SMV) con fecha y "
+                    "fuente, y si están desactualizados.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "list_evaluations",
      "description": "Últimas evaluaciones guardadas con su veredicto.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
@@ -147,6 +172,26 @@ def call_tool(name, a, h=None):
         r = SV.evaluate(h, a.get("symbol"), a.get("interval"), a.get("strategy"), a.get("grid"),
                         a.get("train_days"), a.get("test_days"), a.get("start"), a.get("end"), actor="claude-mcp")
         return SV.summarize_evaluation(r)
+    if name == "advisor_questions":
+        from . import advisor as AD
+        _args(a, [])
+        return {"questions": [dict(q, options=[{"index": i, "text": o} for i, o in enumerate(q["options"])])
+                              for q in AD.QUESTIONS],
+                "finances_fields": "moneda, ingreso_mensual, gastos_mensuales, ahorro_mensual, ahorros_actuales, "
+                                   "ahorros_por_entidad, deudas, dependientes, tipo_trabajo, aporta_afp, metas"}
+    if name == "advisor_save_profile":
+        from . import advisor as AD
+        a = _args(a, ["answers", "finances"])
+        return AD.save_profile(h, a.get("answers"), a.get("finances"))["profile"]
+    if name == "advisor_plan":
+        from . import advisor as AD
+        a = _args(a, ["usd_pen"])
+        return AD.build_plan(AD.load_profile(h), a.get("usd_pen"))
+    if name == "peru_facts":
+        from . import peru as PE
+        _args(a, [])
+        return {"freshness": PE.freshness(), "facts": PE.FACTS, "red_flags": PE.RED_FLAGS,
+                "where_to_verify": PE.WHERE_TO_VERIFY}
     if name == "list_allocations":
         _args(a, [])
         return SV.list_allocations()

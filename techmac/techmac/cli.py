@@ -121,6 +121,75 @@ def _print_goal(r):
     print(r["warning"])
 
 
+def _ask_number(prompt, default=0.0):
+    raw = input("%s [%s]: " % (prompt, default)).strip().replace(",", "")
+    return float(raw) if raw else default
+
+
+def _advisor(a, h):
+    from . import advisor as AD
+    from . import peru as PE
+    if a.cmd == "peru":
+        fr = PE.freshness()
+        print("Datos verificados el %s (%d días)%s\n" % (fr["verified"], fr["age_days"],
+                                                       " - " + fr["warning"] if fr["warning"] else ""))
+        for k, v in PE.FACTS.items():
+            print("* %s\n  %s\n  Fuente: %s\n" % (v["period"], v["text"], v["source"]))
+        return 0
+    if a.cmd == "perfil":
+        if a.from_json:
+            doc = json.loads(Path(a.from_json).read_text(encoding="utf-8"))
+            saved = AD.save_profile(h, doc.get("answers"), doc.get("finances", {}))
+        else:
+            if not sys.stdin.isatty():
+                sys.exit("Usa --from-json o ejecútalo en una terminal interactiva.")
+            print("Asesor TechMaC: 7 preguntas sobre ti y unos datos de tus finanzas.\n")
+            answers = {}
+            for q in AD.QUESTIONS:
+                print(q["text"])
+                for i, o in enumerate(q["options"]):
+                    print("  %d) %s" % (i + 1, o))
+                while True:
+                    raw = input("> ").strip()
+                    if raw.isdigit() and 1 <= int(raw) <= len(q["options"]):
+                        answers[q["id"]] = int(raw) - 1
+                        break
+                    print("Escribe un número de 1 a %d." % len(q["options"]))
+                print()
+            moneda = (input("Moneda de tus números (PEN/USD) [PEN]: ").strip().upper() or "PEN")
+            fin = {"moneda": moneda,
+                   "ingreso_mensual": _ask_number("Ingreso mensual neto"),
+                   "gastos_mensuales": _ask_number("Gastos mensuales"),
+                   "ahorro_mensual": _ask_number("Cuánto puedes ahorrar al mes"),
+                   "ahorros_actuales": _ask_number("Ahorros que ya tienes"),
+                   "dependientes": int(_ask_number("Personas que dependen de ti", 0)),
+                   "tipo_trabajo": "independiente" if input("¿Eres independiente? (s/n) [n]: ").strip().lower()
+                   .startswith("s") else "dependiente",
+                   "aporta_afp": input("¿Aportas a una AFP u ONP? (s/n) [s]: ").strip().lower() != "n",
+                   "deudas": []}
+            while input("¿Agregar una deuda? (s/n) [n]: ").strip().lower().startswith("s"):
+                fin["deudas"].append({"nombre": input("  Nombre: ").strip() or "deuda",
+                                      "saldo": _ask_number("  Saldo"), "tea_pct": _ask_number("  TEA %"),
+                                      "cuota": _ask_number("  Cuota mensual")})
+            saved = AD.save_profile(h, answers, fin)
+        pr = saved["profile"]
+        print("Perfil: %s (%s %%). %s" % (pr["label"], pr["score_pct"], pr["summary"]))
+        for c in pr["caps_applied"]:
+            print("  - " + c)
+        print("\nGuardado en tu carpeta TechMaC (permisos privados). Ahora: python3 techmac/tm.py plan")
+        return 0
+    plan = AD.build_plan(AD.load_profile(h), a.usd_pen)
+    md = AD.plan_markdown(plan)
+    if a.out:
+        Path(a.out).write_text(md, encoding="utf-8")
+        print("Plan guardado en %s" % a.out)
+    elif a.json:
+        _out(plan, True)
+    else:
+        print(md)
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="tm.py", description="TechMaC: backtesting serio y libro en papel, 100 % local.")
     p.add_argument("--json", action="store_true", help="salida JSON")
@@ -218,6 +287,13 @@ def main(argv=None):
     g.add_argument("--years", type=int, default=40)
     g.add_argument("--leverage", default="1,1.5,2,3")
 
+    pf = sub.add_parser("perfil", help="asesor: cuestionario de perfil de riesgo y tus finanzas")
+    pf.add_argument("--from-json", help="archivo con {\"answers\": {...}, \"finances\": {...}} en vez de preguntas")
+    pl = sub.add_parser("plan", help="asesor: tu plan financiero por etapas")
+    pl.add_argument("--out", help="guarda el plan en un archivo Markdown")
+    pl.add_argument("--usd-pen", type=float, help="tipo de cambio, para revisar el FSD si ahorras en dólares")
+    sub.add_parser("peru", help="asesor: datos de Perú usados (FSD, UIT, tasas, impuestos) con fuentes")
+
     a = p.parse_args(argv)
     h = C.home()
     try:
@@ -288,6 +364,8 @@ def _dispatch(a, h):
             _print_verdict(r)
         return 0
 
+    if a.cmd in ("perfil", "plan", "peru"):
+        return _advisor(a, h)
     if a.cmd == "allocations":
         _out(SV.list_allocations(), a.json)
         return 0

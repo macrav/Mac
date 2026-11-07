@@ -121,6 +121,47 @@ quebrar? Remuestrea por bloques de 12 meses los retornos mensuales reales de una
 muestra) o de comprar y mantener un activo, con tu capital, tus aportes y varios niveles de
 apalancamiento.
 
+## Asesor financiero (Perú)
+
+Un asesor de **orientación educativa**, no un asesor autorizado por la SMV. Ordena tus finanzas con
+reglas prudentes y te dice qué verificar y con quién.
+
+```bash
+python3 techmac/tm.py perfil                 # 7 preguntas de perfil de riesgo + tus finanzas
+python3 techmac/tm.py plan                   # tu plan por etapas (o --out mi_plan.md)
+python3 techmac/tm.py peru                   # datos de Perú usados, con fecha y fuente
+```
+
+Desde Claude (también desde el iPhone con Remote Control), la skill `asesor-financiero` hace la
+entrevista pregunta por pregunta y usa las herramientas `advisor_questions`, `advisor_save_profile`,
+`advisor_plan` y `peru_facts`.
+
+**Cómo decide:**
+
+1. **Perfil.** Puntúa 7 respuestas, pero la parte más prudente de ti manda. Si no aceptas ninguna
+   baja, eres *conservador estricto* aunque el resto diga otra cosa. Si venderías todo ante una
+   caída, si necesitas el dinero en menos de 3 años o si perderlo te afectaría mucho, el perfil
+   también se limita.
+2. **Orden fijo:** deudas caras (≥ 15 % TEA, de mayor a menor tasa) → fondo de emergencia (6 meses;
+   9 si eres independiente; +3 si tienes dependientes) → metas de menos de 3 años sin riesgo →
+   largo plazo según perfil → jubilación si eres independiente.
+3. **Asignación por perfil:**
+
+| Perfil | Depósitos con FSD | Renta fija / fondos de deuda | Renta variable global |
+| --- | --- | --- | --- |
+| Conservador estricto | 100 % | 0 % | 0 % |
+| Conservador | 60 % | 30 % | 10 % |
+| Moderado | 30 % | 30 % | 40 % |
+| Crecimiento | 15 % | 25 % | 60 % |
+
+4. **Alertas de Perú:** saldo sobre el límite del FSD en una entidad, exoneración de intereses que
+   vence el 31 de diciembre de 2026, impuestos a ganancias locales y extranjeras, impuesto de
+   sucesiones de EE. UU. y señales de estafa.
+
+La base de datos de Perú (`techmac/techmac/peru.py`) se verificó el 7 de noviembre de 2026. Cada dato
+trae su fuente y el asesor avisa cuando pasan más de 90 días. Tu perfil se guarda en
+`~/.techmac/perfil.json` con permisos privados.
+
 ## Seguridad del conector TechMaC
 
 - **Solo stdio.** No abre puertos ni escucha conexiones.
